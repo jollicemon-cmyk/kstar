@@ -1,1208 +1,877 @@
-```html
 <!DOCTYPE html>
 <html lang="pt-BR" class="h-full bg-slate-950 text-slate-100">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>K-Pop Empire Manager</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        kpop: {
-                            pink: '#ff2a85',
-                            purple: '#9d4edf',
-                            cyan: '#00f5d4',
-                            dark: '#0f0a1e',
-                            card: '#1a1429'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <!-- Fontes Google -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Alpine.js -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
-    <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .glass {
-            background: rgba(26, 20, 41, 0.75);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 42, 133, 0.15);
-        }
-        .glass-hover:hover {
-            border-color: rgba(255, 42, 133, 0.4);
-            box-shadow: 0 0 20px rgba(255, 42, 133, 0.15);
-        }
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: rgba(15, 10, 30, 0.6);
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #ff2a85;
-            border-radius: 4px;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>K-Pop Empire Manager - Ultra Edition</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+theme: {
+extend: {
+colors: {
+kpop: {
+pink: '#ff2a85',
+purple: '#9d4edf',
+cyan: '#00f5d4',
+dark: '#0f0a1e',
+card: '#1a1429'
+}
+}
+}
+}
+}
+</script>
+<!-- Fontes Google -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- Lucide Icons -->
+<script src="https://unpkg.com/lucide@latest"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Alpine.js -->
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+​<style>
+body { font-family: 'Plus Jakarta Sans', sans-serif; }
+.glass {
+background: rgba(26, 20, 41, 0.8);
+backdrop-filter: blur(12px);
+border: 1px solid rgba(255, 42, 133, 0.18);
+}
+.custom-scrollbar::-webkit-scrollbar {
+width: 6px;
+height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+background: rgba(15, 10, 30, 0.6);
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+background: #ff2a85;
+border-radius: 4px;
+}
+</style>
 </head>
 <body class="h-full flex flex-col overflow-hidden custom-scrollbar" x-data="kpopGame()" x-init="initGame()">
-
-    <!-- TOP NAVIGATION BAR -->
-    <header class="glass z-30 px-6 py-3 flex items-center justify-between border-b border-pink-500/20 shrink-0">
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-kpop-pink to-kpop-purple flex items-center justify-center font-extrabold text-white shadow-lg shadow-pink-500/30 text-xl">
-                K
-            </div>
-            <div class="flex items-center gap-2">
-                <template x-if="!editingCompanyName">
-                    <div class="flex items-center gap-2 group">
-                        <h1 class="font-bold text-lg leading-none bg-gradient-to-r from-pink-400 via-purple-300 to-cyan-300 bg-clip-text text-transparent" x-text="companyName"></h1>
-                        <button @click="editingCompanyName = true" class="text-slate-400 hover:text-pink-400 transition" title="Renomear Empresa">
-                            <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
-                        </button>
-                    </div>
-                </template>
-                <template x-if="editingCompanyName">
-                    <div class="flex items-center gap-2">
-                        <input type="text" x-model="tempCompanyName" @keyup.enter="saveCompanyName()" class="bg-slate-900 border border-pink-500 rounded px-2 py-0.5 text-xs text-white focus:outline-none">
-                        <button @click="saveCompanyName()" class="text-emerald-400 hover:text-emerald-300 text-xs font-bold px-2 py-0.5 bg-emerald-950/60 rounded border border-emerald-500/40">Salvar</button>
-                    </div>
-                </template>
-            </div>
-        </div>
-
-        <!-- KEY STATS HEADER -->
-        <div class="flex items-center gap-3 md:gap-6 text-xs md:text-sm">
-            <!-- Orçamento -->
-            <div class="flex items-center gap-2 bg-slate-900/80 px-3 py-1.5 rounded-lg border border-emerald-500/30">
-                <i data-lucide="dollar-sign" class="w-4 h-4 text-emerald-400"></i>
-                <div>
-                    <span class="text-slate-400 text-[10px] block leading-none">ORÇAMENTO</span>
-                    <span class="font-bold text-emerald-400" x-text="formatMoney(budget)"></span>
-                </div>
-            </div>
-
-            <!-- Reputação -->
-            <div class="flex items-center gap-2 bg-slate-900/80 px-3 py-1.5 rounded-lg border border-purple-500/30">
-                <i data-lucide="award" class="w-4 h-4 text-purple-400"></i>
-                <div>
-                    <span class="text-slate-400 text-[10px] block leading-none">REPUTAÇÃO</span>
-                    <span class="font-bold text-purple-300" x-text="reputation + '/100'"></span>
-                </div>
-            </div>
-
-            <!-- Fandom global -->
-            <div class="flex items-center gap-2 bg-slate-900/80 px-3 py-1.5 rounded-lg border border-pink-500/30">
-                <i data-lucide="heart" class="w-4 h-4 text-pink-400"></i>
-                <div>
-                    <span class="text-slate-400 text-[10px] block leading-none">FANDOM LEAL</span>
-                    <span class="font-bold text-pink-300" x-text="fanbaseLoyalty + '%'"></span>
-                </div>
-            </div>
-
-            <!-- Data & Próximo Mês -->
-            <div class="flex items-center gap-3 bg-slate-900/90 px-4 py-1.5 rounded-lg border border-cyan-500/30">
-                <div>
-                    <span class="text-slate-400 text-[10px] block leading-none">DATA ATUAL</span>
-                    <span class="font-bold text-cyan-300" x-text="currentMonthName + ' / ' + currentYear"></span>
-                </div>
-                <button @click="nextMonth()" class="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-semibold text-xs px-3 py-1.5 rounded-md shadow-md transition flex items-center gap-1 active:scale-95">
-                    <span>Avançar Mês</span>
-                    <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
-                </button>
-            </div>
-        </div>
-    </header>
-
-    <!-- MAIN APP CONTAINER -->
-    <div class="flex flex-1 overflow-hidden">
-        
-        <!-- SIDEBAR NAVIGATION -->
-        <aside class="w-64 glass border-r border-pink-500/20 flex flex-col justify-between shrink-0">
-            <nav class="p-4 space-y-1.5 overflow-y-auto custom-scrollbar">
-                <button @click="activeTab = 'dashboard'" :class="activeTab === 'dashboard' ? 'bg-gradient-to-r from-pink-500/20 to-purple-500/20 text-pink-400 border-pink-500/50' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 border-transparent'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-sm font-medium transition">
-                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
-                    <span>Dashboard</span>
-                </button>
-
-                <button @click="activeTab = 'roster'" :class="activeTab === 'roster' ? 'bg-gradient-to-r from-pink-500/20 to-purple-500/20 text-pink-400 border-pink-500/50' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 border-transparent'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-sm font-medium transition">
-                    <i data-lucide="users" class="w-4 h-4"></i>
-                    <span>Elenco & Idols</span>
-                    <span class="ml-auto text-xs px-2 py-0.5 rounded-full bg-slate-800 text-pink-400" x-text="idols.length"></span>
-                </button>
-
-                <button @click="activeTab = 'scout'" :class="activeTab === 'scout' ? 'bg-gradient-to-r from-pink-500/20 to-purple-500/20 text-pink-400 border-pink-500/50' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 border-transparent'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-sm font-medium transition">
-                    <i data-lucide="user-plus" class="w-4 h-4"></i>
-                    <span>Audições & Scouting</span>
-                </button>
-
-                <button @click="activeTab = 'styling'" :class="activeTab === 'styling' ? 'bg-gradient-to-r from-pink-500/20 to-purple-500/20 text-pink-400 border-pink-500/50' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 border-transparent'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-sm font-medium transition">
-                    <i data-lucide="scissors" class="w-4 h-4"></i>
-                    <span>Salão & Visual SVG</span>
-                </button>
-
-                <button @click="activeTab = 'groups'" :class="activeTab === 'groups' ? 'bg-gradient-to-r from-pink-500/20 to-purple-500/20 text-pink-400 border-pink-500/50' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 border-transparent'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-sm font-medium transition">
-                    <i data-lucide="sparkles" class="w-4 h-4"></i>
-                    <span>Grupos & Sub-units</span>
-                    <span class="ml-auto text-xs px-2 py-0.5 rounded-full bg-slate-800 text-purple-400" x-text="groups.length"></span>
-                </button>
-
-                <button @click="activeTab = 'comeback'" :class="activeTab === 'comeback' ? 'bg-gradient-to-r from-pink-500/20 to-purple-500/20 text-pink-400 border-pink-500/50' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 border-transparent'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-sm font-medium transition">
-                    <i data-lucide="disc" class="w-4 h-4"></i>
-                    <span>Lançar Comeback</span>
-                </button>
-
-                <button @click="activeTab = 'pr'" :class="activeTab === 'pr' ? 'bg-gradient-to-r from-pink-500/20 to-purple-500/20 text-pink-400 border-pink-500/50' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 border-transparent'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-sm font-medium transition relative">
-                    <i data-lucide="shield-alert" class="w-4 h-4"></i>
-                    <span>Gestão de Crise (PR)</span>
-                    <template x-if="activeCrises.length > 0">
-                        <span class="ml-auto w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
-                    </template>
-                </button>
-
-                <button @click="activeTab = 'social'" :class="activeTab === 'social' ? 'bg-gradient-to-r from-pink-500/20 to-purple-500/20 text-pink-400 border-pink-500/50' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 border-transparent'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-sm font-medium transition">
-                    <i data-lucide="message-square" class="w-4 h-4"></i>
-                    <span>Feed Social & Fandom</span>
-                </button>
-
-                <button @click="activeTab = 'finances'" :class="activeTab === 'finances' ? 'bg-gradient-to-r from-pink-500/20 to-purple-500/20 text-pink-400 border-pink-500/50' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 border-transparent'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-sm font-medium transition">
-                    <i data-lucide="trending-up" class="w-4 h-4"></i>
-                    <span>Relatório Financeiro</span>
-                </button>
-            </nav>
-
-            <!-- FEED MINI RECENT NOTIFICATION -->
-            <div class="p-4 m-3 glass rounded-xl text-xs space-y-2 border border-slate-700/50">
-                <div class="flex items-center gap-2 text-pink-400 font-semibold">
-                    <i data-lucide="bell" class="w-3.5 h-3.5"></i>
-                    <span>Último Acontecimento</span>
-                </div>
-                <p class="text-slate-300 text-[11px] leading-relaxed line-clamp-3" x-text="recentNews"></p>
-            </div>
-        </aside>
-
-        <!-- CONTENT AREA -->
-        <main class="flex-1 overflow-y-auto p-6 custom-scrollbar bg-slate-950/60">
-
-            <!-- TAB 1: DASHBOARD -->
-            <template x-if="activeTab === 'dashboard'">
-                <div class="space-y-6">
-                    <div>
-                        <h2 class="text-2xl font-bold text-white flex items-center gap-2">
-                            <span>Painel da Agência</span>
-                            <span class="text-xs font-normal text-pink-400 bg-pink-500/10 px-2.5 py-1 rounded-full border border-pink-500/20" x-text="'Temporada ' + currentYear"></span>
-                        </h2>
-                        <p class="text-slate-400 text-sm">Resumo operacional, metas e status do seu império musical.</p>
-                    </div>
-
-                    <!-- METRICS GRID -->
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div class="glass p-4 rounded-xl border-l-4 border-l-emerald-500 space-y-1">
-                            <span class="text-xs text-slate-400">Caixa Total</span>
-                            <div class="text-2xl font-black text-emerald-400" x-text="formatMoney(budget)"></div>
-                            <p class="text-[11px] text-slate-400">Custos fixos mensais: <span class="text-red-400" x-text="formatMoney(monthlyExpenses)"></span></p>
-                        </div>
-
-                        <div class="glass p-4 rounded-xl border-l-4 border-l-purple-500 space-y-1">
-                            <span class="text-xs text-slate-400">Reputação na Indústria</span>
-                            <div class="text-2xl font-black text-purple-400" x-text="reputation + ' / 100'"></div>
-                            <p class="text-[11px] text-slate-400">Afeta contratações e parcerias M/V</p>
-                        </div>
-
-                        <div class="glass p-4 rounded-xl border-l-4 border-l-pink-500 space-y-1">
-                            <span class="text-xs text-slate-400">Trainees & Idols</span>
-                            <div class="text-2xl font-black text-pink-400" x-text="idols.length"></div>
-                            <p class="text-[11px] text-slate-400" x-text="groups.length + ' Grupos ativos'"></p>
-                        </div>
-
-                        <div class="glass p-4 rounded-xl border-l-4 border-l-cyan-500 space-y-1">
-                            <span class="text-xs text-slate-400">Vendas Acumuladas</span>
-                            <div class="text-2xl font-black text-cyan-400" x-text="totalAlbumSales.toLocaleString() + ' cópias'"></div>
-                            <p class="text-[11px] text-slate-400" x-text="totalMusicShowWins + ' Troféus de Music Shows'"></p>
-                        </div>
-                    </div>
-
-                    <!-- ACTIVE GROUPS & LOG -->
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div class="lg:col-span-2 glass p-5 rounded-2xl space-y-4">
-                            <div class="flex justify-between items-center">
-                                <h3 class="font-bold text-lg text-white flex items-center gap-2">
-                                    <i data-lucide="sparkles" class="w-5 h-5 text-purple-400"></i>
-                                    Grupos em Destaque
-                                </h3>
-                                <button @click="activeTab = 'groups'" class="text-xs text-pink-400 hover:underline">Gerenciar Grupos &rarr;</button>
-                            </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <template x-for="group in groups" :key="group.id">
-                                    <div class="glass p-4 rounded-xl border border-slate-700/60 hover:border-pink-500/40 transition">
-                                        <div class="flex justify-between items-start mb-2">
-                                            <div>
-                                                <h4 class="font-bold text-white text-base" x-text="group.name"></h4>
-                                                <span class="text-xs px-2 py-0.5 rounded-md bg-purple-900/50 text-purple-300 border border-purple-500/30" x-text="group.concept"></span>
-                                            </div>
-                                            <span class="text-xs font-bold text-pink-400 bg-pink-500/10 px-2 py-1 rounded" x-text="'Fandom: ' + group.fandomSize.toLocaleString()"></span>
-                                        </div>
-
-                                        <!-- MEMBER AVATARS DISPLAY -->
-                                        <div class="flex items-center -space-x-2 my-3">
-                                            <template x-for="memberId in group.members" :key="memberId">
-                                                <div class="w-9 h-9 rounded-full border-2 border-slate-900 overflow-hidden bg-slate-800" x-html="getIdolAvatarSvg(memberId)"></div>
-                                            </template>
-                                        </div>
-
-                                        <div class="flex items-center justify-between text-xs pt-2 border-t border-slate-800">
-                                            <span class="text-slate-400">Último Comeback:</span>
-                                            <span class="text-cyan-300 font-medium" x-text="group.lastComeback || 'Nenhum'"></span>
-                                        </div>
-                                    </div>
-                                </template>
-                            </div>
-                        </div>
-
-                        <!-- Right col: Company Log -->
-                        <div class="glass p-5 rounded-2xl space-y-4">
-                            <h3 class="font-bold text-lg text-white flex items-center gap-2">
-                                <i data-lucide="history" class="w-5 h-5 text-pink-400"></i>
-                                Histórico de Eventos
-                            </h3>
-                            <div class="space-y-3 max-h-80 overflow-y-auto custom-scrollbar pr-1">
-                                <template x-for="log in eventLogs" :key="log.id">
-                                    <div class="text-xs p-3 rounded-lg bg-slate-900/70 border border-slate-800">
-                                        <div class="flex justify-between text-slate-400 text-[10px] mb-1">
-                                            <span x-text="log.date"></span>
-                                            <span class="text-pink-400 font-semibold" x-text="log.category"></span>
-                                        </div>
-                                        <p class="text-slate-200" x-text="log.message"></p>
-                                    </div>
-                                </template>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </template>
-
-            <!-- TAB 2: IDOL ROSTER -->
-            <template x-if="activeTab === 'roster'">
-                <div class="space-y-6">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <h2 class="text-2xl font-bold text-white">Elenco de Idols & Trainees</h2>
-                            <p class="text-slate-400 text-sm">Gerencie o treinamento, descanso e estado mental dos seus talentos.</p>
-                        </div>
-                        <button @click="activeTab = 'scout'" class="bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2">
-                            <i data-lucide="user-plus" class="w-4 h-4"></i>
-                            Buscar Novos Talentos
-                        </button>
-                    </div>
-
-                    <!-- IDOLS LIST -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                        <template x-for="idol in idols" :key="idol.id">
-                            <div class="glass rounded-2xl p-5 border border-slate-700/50 hover:border-pink-500/40 transition space-y-4">
-                                <div class="flex justify-between items-start">
-                                    <div class="flex items-center gap-3">
-                                        <!-- SVG AVATAR RENDERING -->
-                                        <div class="w-14 h-14 rounded-xl border border-pink-500/30 overflow-hidden bg-slate-900 shadow-md shrink-0" x-html="renderIdolSvg(idol)"></div>
-                                        <div>
-                                            <h3 class="font-bold text-lg text-white leading-snug" x-text="idol.stageName"></h3>
-                                            <p class="text-xs text-slate-400" x-text="idol.realName + ' (' + idol.age + ' anos)'"></p>
-                                        </div>
-                                    </div>
-                                    <span :class="idol.status === 'Debutado' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-amber-500/10 text-amber-400 border-amber-500/30'" class="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full border" x-text="idol.status"></span>
-                                </div>
-
-                                <!-- STATS BARS -->
-                                <div class="space-y-2 text-xs">
-                                    <div>
-                                        <div class="flex justify-between text-slate-300 mb-1">
-                                            <span>Vocal</span>
-                                            <span class="font-bold text-cyan-400" x-text="idol.vocal"></span>
-                                        </div>
-                                        <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                                            <div class="h-full bg-cyan-400 rounded-full" :style="'width: ' + idol.vocal + '%'"></div>
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <div class="flex justify-between text-slate-300 mb-1">
-                                            <span>Dança</span>
-                                            <span class="font-bold text-purple-400" x-text="idol.dance"></span>
-                                        </div>
-                                        <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                                            <div class="h-full bg-purple-400 rounded-full" :style="'width: ' + idol.dance + '%'"></div>
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <div class="flex justify-between text-slate-300 mb-1">
-                                            <span>Rap & Carisma</span>
-                                            <span class="font-bold text-pink-400" x-text="idol.rap"></span>
-                                        </div>
-                                        <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                                            <div class="h-full bg-pink-400 rounded-full" :style="'width: ' + idol.rap + '%'"></div>
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <div class="flex justify-between text-slate-300 mb-1">
-                                            <span>Estresse</span>
-                                            <span :class="idol.stress > 70 ? 'text-red-400' : 'text-emerald-400'" class="font-bold" x-text="idol.stress + '%'"></span>
-                                        </div>
-                                        <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                                            <div :class="idol.stress > 70 ? 'bg-red-500' : 'bg-emerald-400'" class="h-full rounded-full" :style="'width: ' + idol.stress + '%'"></div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="pt-2 border-t border-slate-800 flex items-center justify-between text-xs">
-                                    <span class="text-slate-400">Personalidade:</span>
-                                    <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-medium" x-text="idol.trait"></span>
-                                </div>
-
-                                <!-- ACTIONS -->
-                                <div class="grid grid-cols-2 gap-2 pt-1">
-                                    <button @click="trainIdol(idol, 'vocal')" class="px-2 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-medium transition flex items-center justify-center gap-1">
-                                        <i data-lucide="mic" class="w-3.5 h-3.5 text-cyan-400"></i> Vocal
-                                    </button>
-                                    <button @click="trainIdol(idol, 'dance')" class="px-2 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-medium transition flex items-center justify-center gap-1">
-                                        <i data-lucide="activity" class="w-3.5 h-3.5 text-purple-400"></i> Dança
-                                    </button>
-                                    <button @click="trainIdol(idol, 'variety')" class="px-2 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-medium transition flex items-center justify-center gap-1">
-                                        <i data-lucide="tv" class="w-3.5 h-3.5 text-pink-400"></i> Rap/TV
-                                    </button>
-                                    <button @click="restIdol(idol)" class="px-2 py-1.5 bg-emerald-900/30 hover:bg-emerald-900/50 text-emerald-300 rounded-lg text-xs font-medium transition flex items-center justify-center gap-1 border border-emerald-500/20">
-                                        <i data-lucide="coffee" class="w-3.5 h-3.5"></i> Descanso
-                                    </button>
-                                </div>
-                            </div>
-                        </template>
-                    </div>
-                </div>
-            </template>
-
-            <!-- TAB 3: SCOUTING & AUDITIONS -->
-            <template x-if="activeTab === 'scout'">
-                <div class="space-y-6">
-                    <div>
-                        <h2 class="text-2xl font-bold text-white">Audições Nacionais & Globais</h2>
-                        <p class="text-slate-400 text-sm">Contrate novos talentos para transformar em estrelas do K-Pop.</p>
-                    </div>
-
-                    <div class="flex gap-4">
-                        <button @click="runScout('local')" class="glass hover:border-pink-500 p-4 rounded-xl flex-1 text-left transition space-y-2">
-                            <h3 class="font-bold text-pink-400 text-base">Audição Local (Seul)</h3>
-                            <p class="text-xs text-slate-400">Custo: $5.000 | Encontra 3 candidatos com potencial variado.</p>
-                        </button>
-                        <button @click="runScout('global')" class="glass hover:border-purple-500 p-4 rounded-xl flex-1 text-left transition space-y-2">
-                            <h3 class="font-bold text-purple-400 text-base">Audição Global (Mundial)</h3>
-                            <p class="text-xs text-slate-400">Custo: $20.000 | Encontra 3 candidatos com atributos mais elevados.</p>
-                        </button>
-                    </div>
-
-                    <div class="space-y-4">
-                        <h3 class="font-bold text-lg text-white">Candidatos Disponíveis</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                            <template x-for="candidate in scoutCandidates" :key="candidate.id">
-                                <div class="glass p-5 rounded-2xl space-y-4 border border-slate-700">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-14 h-14 rounded-xl border border-purple-500/30 overflow-hidden bg-slate-900 shrink-0" x-html="renderIdolSvg(candidate)"></div>
-                                        <div>
-                                            <h4 class="font-bold text-lg text-white" x-text="candidate.stageName"></h4>
-                                            <p class="text-xs text-slate-400" x-text="candidate.realName + ' • ' + candidate.age + ' anos'"></p>
-                                        </div>
-                                    </div>
-
-                                    <div class="space-y-2 text-xs">
-                                        <div class="flex justify-between">
-                                            <span class="text-slate-400">Vocal:</span>
-                                            <span class="font-bold text-cyan-300" x-text="candidate.vocal"></span>
-                                        </div>
-                                        <div class="flex justify-between">
-                                            <span class="text-slate-400">Dança:</span>
-                                            <span class="font-bold text-purple-300" x-text="candidate.dance"></span>
-                                        </div>
-                                        <div class="flex justify-between">
-                                            <span class="text-slate-400">Rap / Carisma:</span>
-                                            <span class="font-bold text-pink-300" x-text="candidate.rap"></span>
-                                        </div>
-                                    </div>
-
-                                    <button @click="signTrainee(candidate)" class="w-full py-2 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-semibold rounded-xl text-xs transition">
-                                        Assinar Contrato de Trainee
-                                    </button>
-                                </div>
-                            </template>
-                        </div>
-                    </div>
-                </div>
-            </template>
-
-            <!-- TAB 4: SVG STYLING & MAKEOVER SALON -->
-            <template x-if="activeTab === 'styling'">
-                <div class="space-y-6">
-                    <div>
-                        <h2 class="text-2xl font-bold text-white flex items-center gap-2">
-                            <i data-lucide="scissors" class="w-6 h-6 text-pink-400"></i>
-                            Salão de Beleza & Visual SVG dos Idols
-                        </h2>
-                        <p class="text-slate-400 text-sm">Personalize os cabelos, cores e estilos para a era atual do grupo.</p>
-                    </div>
-
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <!-- IDOL SELECTOR -->
-                        <div class="glass p-5 rounded-2xl space-y-3">
-                            <h3 class="font-bold text-sm text-slate-300">Escolha o Idol para Personalizar</h3>
-                            <div class="space-y-2 max-h-96 overflow-y-auto custom-scrollbar">
-                                <template x-for="idol in idols" :key="idol.id">
-                                    <div @click="selectedStylingIdol = idol" :class="selectedStylingIdol?.id === idol.id ? 'border-pink-500 bg-pink-500/10' : 'border-slate-800 bg-slate-900/60'" class="p-3 rounded-xl border flex items-center gap-3 cursor-pointer hover:border-pink-500/40 transition">
-                                        <div class="w-10 h-10 rounded-lg overflow-hidden bg-slate-950 shrink-0" x-html="renderIdolSvg(idol)"></div>
-                                        <div>
-                                            <p class="font-bold text-sm text-white" x-text="idol.stageName"></p>
-                                            <p class="text-xs text-slate-400" x-text="idol.status"></p>
-                                        </div>
-                                    </div>
-                                </template>
-                            </div>
-                        </div>
-
-                        <!-- STYLING CONTROLS -->
-                        <div class="lg:col-span-2 glass p-6 rounded-2xl space-y-6">
-                            <template x-if="selectedStylingIdol">
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-                                    <!-- BIG AVATAR PREVIEW -->
-                                    <div class="flex flex-col items-center justify-center p-6 bg-slate-900/90 rounded-2xl border border-pink-500/30">
-                                        <div class="w-40 h-40 rounded-2xl overflow-hidden border-2 border-pink-500/50 shadow-xl bg-slate-950 mb-3" x-html="renderIdolSvg(selectedStylingIdol)"></div>
-                                        <h4 class="font-bold text-xl text-white" x-text="selectedStylingIdol.stageName"></h4>
-                                        <p class="text-xs text-pink-400" x-text="'Visual Atual'"></p>
-                                    </div>
-
-                                    <!-- CUSTOMIZATION OPTIONS -->
-                                    <div class="space-y-4 text-xs">
-                                        <div>
-                                            <label class="block font-semibold text-slate-300 mb-1">Estilo do Cabelo</label>
-                                            <select x-model="selectedStylingIdol.hairStyle" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
-                                                <option value="short_kpop">Curto Idol Moderno</option>
-                                                <option value="long_straight">Longo Liso Diva</option>
-                                                <option value="curly_swag">O ondulado Swag</option>
-                                                <option value="bun_kpop">Coque Alto Cute</option>
-                                                <option value="undercut">Undercut Rebel</option>
-                                            </select>
-                                        </div>
-
-                                        <div>
-                                            <label class="block font-semibold text-slate-300 mb-1">Cor do Cabelo (Comeback Color)</label>
-                                            <div class="flex items-center gap-3">
-                                                <input type="color" x-model="selectedStylingIdol.hairColor" class="w-10 h-10 rounded-lg bg-transparent border-0 cursor-pointer">
-                                                <span class="text-slate-400 uppercase font-mono" x-text="selectedStylingIdol.hairColor"></span>
-                                            </div>
-                                        </div>
-
-                                        <div>
-                                            <label class="block font-semibold text-slate-300 mb-1">Tom de Pele</label>
-                                            <select x-model="selectedStylingIdol.skinTone" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
-                                                <option value="#f8d7da">Porcelana Rosado</option>
-                                                <option value="#fcd5ce">Claro Natural</option>
-                                                <option value="#e0a96d">Dourado / Bronze</option>
-                                                <option value="#c68b59">Moreno Radiante</option>
-                                            </select>
-                                        </div>
-
-                                        <button @click="applyMakeoverCost()" class="w-full py-2.5 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold rounded-xl shadow-lg transition">
-                                            Confirmar Novo Visual ($2.000)
-                                        </button>
-                                    </div>
-                                </div>
-                            </template>
-
-                            <template x-if="!selectedStylingIdol">
-                                <div class="py-12 text-center text-slate-500">
-                                    <p>Selecione um idol na lista ao lado para editar seu visual SVG.</p>
-                                </div>
-                            </template>
-                        </div>
-                    </div>
-                </div>
-            </template>
-
-            <!-- TAB 5: GROUP CREATION -->
-            <template x-if="activeTab === 'groups'">
-                <div class="space-y-6">
-                    <div>
-                        <h2 class="text-2xl font-bold text-white">Formação de Grupos & Sub-units</h2>
-                        <p class="text-slate-400 text-sm">Crie novos grupos juntando seus melhores trainees e idols.</p>
-                    </div>
-
-                    <div class="glass p-6 rounded-2xl border border-purple-500/30 space-y-4">
-                        <h3 class="font-bold text-lg text-white">Criar Novo Grupo</h3>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs text-slate-400 mb-1">Nome do Grupo</label>
-                                <input type="text" x-model="newGroupName" placeholder="Ex: AESPA, BTS, BLACKPINK..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-pink-500">
-                            </div>
-                            <div>
-                                <label class="block text-xs text-slate-400 mb-1">Conceito Principal</label>
-                                <select x-model="newGroupConcept" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-pink-500">
-                                    <option value="Girl Crush / Dark">Girl Crush / Dark</option>
-                                    <option value="Teen Fresh / Fofo">Teen Fresh / Fofo</option>
-                                    <option value="Retro / Synthwave">Retro / Synthwave</option>
-                                    <option value="Hip-Hop / Swag">Hip-Hop / Swag</option>
-                                    <option value="Elegante / Lore Heavy">Elegante / Lore Heavy</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs text-slate-400 mb-2">Selecione os Integrantes:</label>
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                <template x-for="idol in idols" :key="idol.id">
-                                    <label class="flex items-center gap-3 p-3 rounded-xl glass border border-slate-800 cursor-pointer hover:border-pink-500/40">
-                                        <input type="checkbox" :value="idol.id" x-model="selectedIdolsForGroup" class="rounded accent-pink-500">
-                                        <div class="w-8 h-8 rounded-lg overflow-hidden bg-slate-900 shrink-0" x-html="renderIdolSvg(idol)"></div>
-                                        <div class="text-xs">
-                                            <p class="font-bold text-white" x-text="idol.stageName"></p>
-                                            <p class="text-[10px] text-slate-400" x-text="'V:' + idol.vocal + ' D:' + idol.dance"></p>
-                                        </div>
-                                    </label>
-                                </template>
-                            </div>
-                        </div>
-
-                        <button @click="createGroup()" class="px-6 py-2.5 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold rounded-xl text-xs hover:shadow-lg transition">
-                            Realizar Debut do Grupo
-                        </button>
-                    </div>
-
-                    <div class="space-y-4">
-                        <h3 class="font-bold text-lg text-white">Grupos Ativos da Empresa</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <template x-for="group in groups" :key="group.id">
-                                <div class="glass p-5 rounded-2xl border border-slate-700 space-y-3">
-                                    <div class="flex justify-between items-start">
-                                        <div>
-                                            <h4 class="font-bold text-xl text-white" x-text="group.name"></h4>
-                                            <span class="text-xs text-purple-400" x-text="group.concept"></span>
-                                        </div>
-                                        <div class="text-right">
-                                            <span class="text-xs text-slate-400 block">Fandom</span>
-                                            <span class="font-bold text-pink-400 text-sm" x-text="group.fandomSize.toLocaleString() + ' fãs'"></span>
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <span class="text-xs text-slate-400 block mb-1">Membros:</span>
-                                        <div class="flex flex-wrap gap-2">
-                                            <template x-for="memberId in group.members" :key="memberId">
-                                                <div class="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 text-xs text-slate-200">
-                                                    <div class="w-5 h-5 rounded-full overflow-hidden bg-slate-950" x-html="getIdolAvatarSvg(memberId)"></div>
-                                                    <span x-text="getIdolName(memberId)"></span>
-                                                </div>
-                                            </template>
-                                        </div>
-                                    </div>
-                                </div>
-                            </template>
-                        </div>
-                    </div>
-                </div>
-            </template>
-
-            <!-- TAB 6: COMEBACK & ALBUM RELEASE -->
-            <template x-if="activeTab === 'comeback'">
-                <div class="space-y-6">
-                    <div>
-                        <h2 class="text-2xl font-bold text-white">Produção de Comeback & Álbuns</h2>
-                        <p class="text-slate-400 text-sm">Planeje lançamentos, gravação de MVs e campanhas de promoção nas redes e programas de TV.</p>
-                    </div>
-
-                    <div class="glass p-6 rounded-2xl border border-pink-500/30 space-y-6">
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-300 mb-2">1. Selecione o Grupo para o Comeback</label>
-                            <select x-model="cbSelectedGroup" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-pink-500">
-                                <option value="">-- Selecione um Grupo --</option>
-                                <template x-for="g in groups" :key="g.id">
-                                    <option :value="g.id" x-text="g.name + ' (' + g.concept + ')'"></option>
-                                </template>
-                            </select>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-300 mb-2">Nome do Álbum / Single</label>
-                                <input type="text" x-model="cbAlbumTitle" placeholder="Ex: Supernova, Born Pink..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-pink-500">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-300 mb-2">Qualidade da Produção Musical</label>
-                                <select x-model="cbMusicQuality" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-pink-500">
-                                    <option value="low">Indie Produtor ($10.000)</option>
-                                    <option value="medium">Produtor Famoso ($35.000)</option>
-                                    <option value="high">Hitmaker Internacional ($80.000)</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-300 mb-2">Orçamento do Clipe (Music Video)</label>
-                                <select x-model="cbMvBudget" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-pink-500">
-                                    <option value="low">MV Simples em Estúdio ($15.000)</option>
-                                    <option value="medium">Cenários Reais & Efeitos ($45.000)</option>
-                                    <option value="high">Superprodução Blockbuster ($120.000)</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-300 mb-2">Estratégia de Promoção</label>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                <label class="flex items-center gap-3 p-3 rounded-xl glass border border-slate-800 cursor-pointer">
-                                    <input type="radio" name="promo" value="standard" x-model="cbPromoType" class="accent-pink-500">
-                                    <div class="text-xs">
-                                        <p class="font-bold text-white">Music Shows Básicos</p>
-                                        <p class="text-slate-400">Custo: $5.000</p>
-                                    </div>
-                                </label>
-                                <label class="flex items-center gap-3 p-3 rounded-xl glass border border-slate-800 cursor-pointer">
-                                    <input type="radio" name="promo" value="heavy" x-model="cbPromoType" class="accent-pink-500">
-                                    <div class="text-xs">
-                                        <p class="font-bold text-white">Turnê em Variety Shows + Anúncios</p>
-                                        <p class="text-slate-400">Custo: $25.000</p>
-                                    </div>
-                                </label>
-                                <label class="flex items-center gap-3 p-3 rounded-xl glass border border-slate-800 cursor-pointer">
-                                    <input type="radio" name="promo" value="global" x-model="cbPromoType" class="accent-pink-500">
-                                    <div class="text-xs">
-                                        <p class="font-bold text-white">World Tour Promo + Fansigns Globais</p>
-                                        <p class="text-slate-400">Custo: $60.000</p>
-                                    </div>
-                                </label>
-                            </div>
-                        </div>
-
-                        <button @click="launchComeback()" class="w-full py-3 bg-gradient-to-r from-pink-500 via-purple-600 to-cyan-500 hover:opacity-90 text-white font-bold rounded-xl text-sm shadow-lg shadow-pink-500/20 transition">
-                            Lançar Comeback Oficial! 🚀
-                        </button>
-                    </div>
-                </div>
-            </template>
-
-            <!-- TAB 7: PR & CRISIS MANAGEMENT -->
-            <template x-if="activeTab === 'pr'">
-                <div class="space-y-6">
-                    <div>
-                        <h2 class="text-2xl font-bold text-white">Gestão de Crise & Relações Públicas</h2>
-                        <p class="text-slate-400 text-sm">Resolva escândalos, polêmicas e vazamentos para proteger a imagem da sua empresa.</p>
-                    </div>
-
-                    <div class="space-y-4">
-                        <template x-for="crisis in activeCrises" :key="crisis.id">
-                            <div class="glass p-6 rounded-2xl border border-red-500/40 bg-red-950/10 space-y-4">
-                                <div class="flex items-center gap-3 text-red-400">
-                                    <i data-lucide="alert-triangle" class="w-6 h-6 animate-bounce"></i>
-                                    <div>
-                                        <h3 class="font-bold text-lg text-white" x-text="crisis.title"></h3>
-                                        <p class="text-xs text-slate-400" x-text="'Envolvido: ' + crisis.idolName"></p>
-                                    </div>
-                                </div>
-
-                                <p class="text-sm text-slate-200 leading-relaxed" x-text="crisis.description"></p>
-
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
-                                    <template x-for="option in crisis.options" :key="option.text">
-                                        <button @click="resolveCrisis(crisis, option)" class="p-3 bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-pink-500 rounded-xl text-left space-y-1 transition">
-                                            <p class="text-xs font-bold text-pink-400" x-text="option.text"></p>
-                                            <p class="text-[11px] text-slate-400" x-text="option.impactText"></p>
-                                        </button>
-                                    </template>
-                                </div>
-                            </div>
-                        </template>
-
-                        <template x-if="activeCrises.length === 0">
-                            <div class="py-12 text-center glass rounded-2xl text-slate-500">
-                                <i data-lucide="shield-check" class="w-12 h-12 mx-auto mb-2 text-emerald-400 opacity-60"></i>
-                                <h3 class="text-white font-bold text-base">Tudo tranquilo por enquanto</h3>
-                                <p class="text-xs text-slate-400 mt-1">Nenhum escândalo ativo no momento. Fique atento no final de cada mês!</p>
-                            </div>
-                        </template>
-                    </div>
-                </div>
-            </template>
-
-            <!-- TAB 8: SOCIAL MEDIA FEED -->
-            <template x-if="activeTab === 'social'">
-                <div class="space-y-6">
-                    <div>
-                        <h2 class="text-2xl font-bold text-white">K-Netz & Social Feed</h2>
-                        <p class="text-slate-400 text-sm">Veja o que o público e os fãs estão comentando em tempo real sobre sua empresa.</p>
-                    </div>
-
-                    <div class="glass rounded-2xl p-4 max-w-2xl mx-auto space-y-3">
-                        <template x-for="post in socialPosts" :key="post.id">
-                            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2">
-                                <div class="flex justify-between items-center text-xs">
-                                    <div class="flex items-center gap-2">
-                                        <span class="font-bold text-pink-400" x-text="post.handle"></span>
-                                        <span class="text-slate-500" x-text="post.time"></span>
-                                    </div>
-                                    <span class="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-400" x-text="post.tag"></span>
-                                </div>
-                                <p class="text-sm text-slate-200" x-text="post.content"></p>
-                                <div class="flex items-center gap-4 text-xs text-slate-500 pt-1">
-                                    <span class="flex items-center gap-1"><i data-lucide="heart" class="w-3.5 h-3.5 text-pink-500"></i> <span x-text="post.likes"></span></span>
-                                    <span class="flex items-center gap-1"><i data-lucide="repeat" class="w-3.5 h-3.5 text-cyan-500"></i> <span x-text="post.retweets"></span></span>
-                                </div>
-                            </div>
-                        </template>
-                    </div>
-                </div>
-            </template>
-
-            <!-- TAB 9: FINANCIAL REPORTS -->
-            <template x-if="activeTab === 'finances'">
-                <div class="space-y-6">
-                    <div>
-                        <h2 class="text-2xl font-bold text-white">Relatório Financeiro & Performance</h2>
-                        <p class="text-slate-400 text-sm">Acompanhe lucros, gastos e faturamento dos seus lançamentos.</p>
-                    </div>
-
-                    <div class="glass p-6 rounded-2xl space-y-4">
-                        <h3 class="font-bold text-lg text-white">Evolução do Orçamento</h3>
-                        <div class="h-64 w-full">
-                            <canvas id="financeChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </template>
-
-        </main>
-    </div>
-
-    <!-- JOGO LOGIC SCRIPTS -->
-    <script>
-        function kpopGame() {
-            return {
-                // Game States
-                companyName: "HYBE Lite Ent.",
-                editingCompanyName: false,
-                tempCompanyName: "",
-                budget: 150000,
-                reputation: 60,
-                fanbaseLoyalty: 75,
-                currentMonth: 1,
-                currentYear: 2026,
-                activeTab: 'dashboard',
-
-                selectedStylingIdol: null,
-
-                totalAlbumSales: 0,
-                totalMusicShowWins: 0,
-                monthlyExpenses: 8000,
-                recentNews: "Empresa fundada com sucesso! Monte seu primeiro grupo de sucesso.",
-
-                // Data Arrays with SVG Avatars
-                idols: [
-                    { id: 1, stageName: "Minho", realName: "Lee Min-ho", age: 19, vocal: 75, dance: 82, rap: 60, stress: 20, status: "Debutado", trait: "Perfeccionista", skinTone: "#fcd5ce", hairStyle: "short_kpop", hairColor: "#9d4edf" },
-                    { id: 2, stageName: "Jennie", realName: "Kim Ji-soo", age: 18, vocal: 88, dance: 70, rap: 85, stress: 15, status: "Debutado", trait: "Carismática", skinTone: "#f8d7da", hairStyle: "long_straight", hairColor: "#ff2a85" },
-                    { id: 3, stageName: "Sora", realName: "Park Sora", age: 17, vocal: 65, dance: 90, rap: 40, stress: 30, status: "Trainee", trait: "Workaholic", skinTone: "#e0a96d", hairStyle: "bun_kpop", hairColor: "#00f5d4" }
-                ],
-                groups: [
-                    { id: 101, name: "NEO NOVA", concept: "Girl Crush / Dark", members: [1, 2], fandomSize: 12500, lastComeback: "Mês 1" }
-                ],
-                scoutCandidates: [],
-                activeCrises: [],
-                eventLogs: [
-                    { id: 1, date: "Mês 1/2026", category: "Sistema", message: "Empresa fundada e grupo NEO NOVA criado." }
-                ],
-                socialPosts: [
-                    { id: 1, handle: "@KpopZuu", time: "Há 2h", tag: "#NEONOVA", content: "O grupo NEO NOVA promete muito! O visual e o vocal da Jennie são impecáveis!", likes: "3.4K", retweets: "890" },
-                    { id: 2, handle: "@NetizenPicks", time: "Há 4h", tag: "#KpopNews", content: "Nova agência surge no mercado de Seul com orçamento promissor.", likes: "1.2K", retweets: "230" }
-                ],
-
-                // Form States
-                cbSelectedGroup: "",
-                cbAlbumTitle: "",
-                cbMusicQuality: "medium",
-                cbMvBudget: "medium",
-                cbPromoType: "standard",
-
-                newGroupName: "",
-                newGroupConcept: "Girl Crush / Dark",
-                selectedIdolsForGroup: [],
-
-                // Finance Chart Instance
-                chartInstance: null,
-                financeHistory: [150000],
-
-                get currentMonthName() {
-                    const months = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
-                    return months[(this.currentMonth - 1) % 12];
-                },
-
-                initGame() {
-                    this.tempCompanyName = this.companyName;
-                    this.generateScoutCandidates();
-                    this.refreshLucide();
-                },
-
-                saveCompanyName() {
-                    if (this.tempCompanyName.trim()) {
-                        this.companyName = this.tempCompanyName.trim();
-                        this.addLog("Empresa", `Nome da empresa alterado para "${this.companyName}".`);
-                    }
-                    this.editingCompanyName = false;
-                },
-
-                refreshLucide() {
-                    setTimeout(() => { lucide.createIcons(); }, 50);
-                },
-
-                formatMoney(amount) {
-                    return '$' + amount.toLocaleString('en-US');
-                },
-
-                // RENDER SVG PROCEDURAL AVATAR
-                renderIdolSvg(idol) {
-                    if (!idol) return '';
-                    const skin = idol.skinTone || '#fcd5ce';
-                    const hairColor = idol.hairColor || '#9d4edf';
-                    const style = idol.hairStyle || 'short_kpop';
-
-                    let hairPath = '';
-                    if (style === 'short_kpop') {
-                        hairPath = `<path d="M 20 40 Q 50 10 80 40 Q 80 25 50 18 Q 20 25 20 40 Z" fill="${hairColor}" />
-                                    <path d="M 25 35 Q 35 22 50 30 Q 65 22 75 35 Q 50 25 25 35 Z" fill="${hairColor}" opacity="0.9" />`;
-                    } else if (style === 'long_straight') {
-                        hairPath = `<path d="M 18 40 Q 50 12 82 40 L 85 85 Q 75 88 72 60 L 72 40 Q 50 22 28 40 L 28 60 Q 25 88 15 85 Z" fill="${hairColor}" />`;
-                    } else if (style === 'curly_swag') {
-                        hairPath = `<path d="M 15 45 Q 20 15 50 15 Q 80 15 85 45 Q 90 65 80 75 Q 75 50 72 40 Q 50 20 28 40 Q 25 50 20 75 Q 10 65 15 45 Z" fill="${hairColor}" />`;
-                    } else if (style === 'bun_kpop') {
-                        hairPath = `<circle cx="50" cy="18" r="14" fill="${hairColor}" />
-                                    <path d="M 22 42 Q 50 22 78 42 Q 70 30 50 26 Q 30 30 22 42 Z" fill="${hairColor}" />`;
-                    } else { // undercut
-                        hairPath = `<path d="M 25 38 Q 50 12 75 28 Q 78 40 70 38 Q 50 22 28 38 Z" fill="${hairColor}" />
-                                    <path d="M 20 42 Q 30 28 50 25 Q 65 25 70 32" stroke="${hairColor}" stroke-width="4" fill="none" />`;
-                    }
-
-                    return `
-                        <svg viewBox="0 0 100 100" class="w-full h-full">
-                            <!-- Background gradient -->
-                            <rect width="100" height="100" fill="#0f172a" />
-                            
-                            <!-- Body / Shoulders -->
-                            <path d="M 20 100 Q 50 75 80 100 Z" fill="#334155" />
-                            <path d="M 32 100 Q 50 82 68 100 Z" fill="#ff2a85" opacity="0.6" />
-                            
-                            <!-- Neck -->
-                            <rect x="43" y="58" width="14" height="16" fill="${skin}" rx="3" />
-                            
-                            <!-- Head -->
-                            <ellipse cx="50" cy="46" rx="24" ry="26" fill="${skin}" />
-                            
-                            <!-- Eyes -->
-                            <ellipse cx="40" cy="45" rx="3" ry="4" fill="#0f172a" />
-                            <ellipse cx="60" cy="45" rx="3" ry="4" fill="#0f172a" />
-                            <circle cx="41" cy="44" r="1" fill="#ffffff" />
-                            <circle cx="61" cy="44" r="1" fill="#ffffff" />
-
-                            <!-- Cheeks Blush -->
-                            <ellipse cx="36" cy="51" rx="4" ry="2" fill="#ff2a85" opacity="0.3" />
-                            <ellipse cx="64" cy="51" rx="4" ry="2" fill="#ff2a85" opacity="0.3" />
-
-                            <!-- Mouth -->
-                            <path d="M 45 56 Q 50 60 55 56" stroke="#e11d48" stroke-width="2" fill="none" stroke-linecap="round" />
-
-                            <!-- Hair Layer -->
-                            ${hairPath}
-                        </svg>
-                    `;
-                },
-
-                getIdolAvatarSvg(id) {
-                    const idol = this.idols.find(i => i.id === id);
-                    return this.renderIdolSvg(idol);
-                },
-
-                applyMakeoverCost() {
-                    if (this.budget < 2000) {
-                        alert("Orçamento insuficiente para styling ($2.000 necessários)!");
-                        return;
-                    }
-                    this.budget -= 2000;
-                    this.addLog("Styling", `Novo visual atribuído para ${this.selectedStylingIdol.stageName}.`);
-                    alert("Novo visual salvo com sucesso!");
-                },
-
-                // Train Idol
-                trainIdol(idol, type) {
-                    if (this.budget < 1000) {
-                        alert("Sem orçamento suficiente para treinos ($1.000 necessários).");
-                        return;
-                    }
-                    this.budget -= 1000;
-                    idol.stress = Math.min(100, idol.stress + 10);
-
-                    if (type === 'vocal') idol.vocal = Math.min(99, idol.vocal + Math.floor(Math.random() * 3) + 2);
-                    if (type === 'dance') idol.dance = Math.min(99, idol.dance + Math.floor(Math.random() * 3) + 2);
-                    if (type === 'variety') idol.rap = Math.min(99, idol.rap + Math.floor(Math.random() * 3) + 2);
-
-                    this.addLog("Treinamento", `${idol.stageName} treinou ${type}. Atributo aumentado!`);
-                },
-
-                restIdol(idol) {
-                    this.budget -= 500;
-                    idol.stress = Math.max(0, idol.stress - 25);
-                    this.addLog("Descanso", `${idol.stageName} descansou e reduziu o estresse.`);
-                },
-
-                // Scout
-                runScout(type) {
-                    const cost = type === 'local' ? 5000 : 20000;
-                    if (this.budget < cost) {
-                        alert("Orçamento insuficiente para audições!");
-                        return;
-                    }
-                    this.budget -= cost;
-                    this.generateScoutCandidates(type === 'global');
-                },
-
-                generateScoutCandidates(isGlobal = false) {
-                    const names = ["Felix", "Hanni", "Kai", "Yuna", "Ji-hoon", "Rei", "Chae-won", "Sunoo", "Karina", "Beomgyu"];
-                    const traits = ["Extrovertido", "Perfeccionista", "Compositor", "Dançarino Nato", "Timidez Fofa"];
-                    const hairStyles = ["short_kpop", "long_straight", "curly_swag", "bun_kpop", "undercut"];
-                    const hairColors = ["#ff2a85", "#9d4edf", "#00f5d4", "#f59e0b", "#3b82f6", "#10b981", "#ef4444"];
-                    const skinTones = ["#f8d7da", "#fcd5ce", "#e0a96d", "#c68b59"];
-
-                    const baseBonus = isGlobal ? 15 : 0;
-
-                    this.scoutCandidates = Array.from({ length: 3 }, (_, i) => ({
-                        id: Date.now() + i,
-                        stageName: names[Math.floor(Math.random() * names.length)],
-                        realName: "Trainee #" + Math.floor(Math.random() * 900 + 100),
-                        age: Math.floor(Math.random() * 5) + 16,
-                        vocal: Math.floor(Math.random() * 30) + 50 + baseBonus,
-                        dance: Math.floor(Math.random() * 30) + 50 + baseBonus,
-                        rap: Math.floor(Math.random() * 30) + 40 + baseBonus,
-                        stress: 10,
-                        status: "Trainee",
-                        trait: traits[Math.floor(Math.random() * traits.length)],
-                        skinTone: skinTones[Math.floor(Math.random() * skinTones.length)],
-                        hairStyle: hairStyles[Math.floor(Math.random() * hairStyles.length)],
-                        hairColor: hairColors[Math.floor(Math.random() * hairColors.length)]
-                    }));
-                },
-
-                signTrainee(candidate) {
-                    this.idols.push(candidate);
-                    this.scoutCandidates = this.scoutCandidates.filter(c => c.id !== candidate.id);
-                    this.addLog("Contratação", `Trainee ${candidate.stageName} assinou com a ${this.companyName}!`);
-                },
-
-                // Create Group
-                createGroup() {
-                    if (!this.newGroupName.trim() || this.selectedIdolsForGroup.length === 0) {
-                        alert("Digite o nome do grupo e selecione pelo menos 1 integrante!");
-                        return;
-                    }
-
-                    const newGroup = {
-                        id: Date.now(),
-                        name: this.newGroupName,
-                        concept: this.newGroupConcept,
-                        members: [...this.selectedIdolsForGroup].map(Number),
-                        fandomSize: 1000,
-                        lastComeback: "Sem lançamentos"
-                    };
-
-                    this.idols.forEach(idol => {
-                        if (this.selectedIdolsForGroup.includes(idol.id.toString()) || this.selectedIdolsForGroup.includes(idol.id)) {
-                            idol.status = "Debutado";
-                        }
-                    });
-
-                    this.groups.push(newGroup);
-                    this.addLog("Debut", `O grupo ${newGroup.name} realizou seu debut oficial!`);
-                    this.newGroupName = "";
-                    this.selectedIdolsForGroup = [];
-                    this.activeTab = 'dashboard';
-                },
-
-                getIdolName(id) {
-                    const idol = this.idols.find(i => i.id === id);
-                    return idol ? idol.stageName : 'Integrante';
-                },
-
-                // Comeback
-                launchComeback() {
-                    if (!this.cbSelectedGroup || !this.cbAlbumTitle) {
-                        alert("Selecione o grupo e informe o nome do álbum!");
-                        return;
-                    }
-
-                    const group = this.groups.find(g => g.id == this.cbSelectedGroup);
-                    if (!group) return;
-
-                    let cost = 0;
-                    if (this.cbMusicQuality === 'low') cost += 10000;
-                    if (this.cbMusicQuality === 'medium') cost += 35000;
-                    if (this.cbMusicQuality === 'high') cost += 80000;
-
-                    if (this.cbMvBudget === 'low') cost += 15000;
-                    if (this.cbMvBudget === 'medium') cost += 45000;
-                    if (this.cbMvBudget === 'high') cost += 120000;
-
-                    if (this.cbPromoType === 'standard') cost += 5000;
-                    if (this.cbPromoType === 'heavy') cost += 25000;
-                    if (this.cbPromoType === 'global') cost += 60000;
-
-                    if (this.budget < cost) {
-                        alert(`Orçamento insuficiente para esse comeback! Custo total: ${this.formatMoney(cost)}`);
-                        return;
-                    }
-
-                    this.budget -= cost;
-
-                    // Calculate Success
-                    const albumSales = Math.floor(Math.random() * 50000) + (cost * 2);
-                    const revenue = Math.floor(albumSales * 3.5);
-                    const wins = Math.floor(Math.random() * 4) + (cost > 100000 ? 3 : 0);
-
-                    this.budget += revenue;
-                    this.totalAlbumSales += albumSales;
-                    this.totalMusicShowWins += wins;
-                    group.fandomSize += Math.floor(albumSales * 0.15);
-                    group.lastComeback = `${this.cbAlbumTitle} (${this.currentMonthName}/${this.currentYear})`;
-
-                    // Social Post
-                    this.socialPosts.unshift({
-                        id: Date.now(),
-                        handle: "@BillboardK",
-                        time: "Agora mesmo",
-                        tag: "#ComebackResult",
-                        content: `🔥 O comeback de ${group.name} com "${this.cbAlbumTitle}" vendeu ${albumSales.toLocaleString()} cópias na primeira semana!`,
-                        likes: (albumSales / 10).toFixed(0) + "K",
-                        retweets: (albumSales / 50).toFixed(0) + "K"
-                    });
-
-                    this.recentNews = `${group.name} lançou "${this.cbAlbumTitle}" gerando ${this.formatMoney(revenue)} em receitas e ${wins} troféus!`;
-                    this.addLog("Comeback", `${group.name} lançou ${this.cbAlbumTitle}. Lucro: ${this.formatMoney(revenue - cost)}.`);
-
-                    alert(`Comeback Realizado!\n\nVendas: ${albumSales.toLocaleString()} cópias\nReceita: ${this.formatMoney(revenue)}\nVitórias em Programas: ${wins}`);
-                    this.activeTab = 'dashboard';
-                },
-
-                // Monthly Simulation
-                nextMonth() {
-                    this.currentMonth++;
-                    if (this.currentMonth > 12) {
-                        this.currentMonth = 1;
-                        this.currentYear++;
-                    }
-
-                    this.budget -= this.monthlyExpenses;
-
-                    if (Math.random() < 0.35 && this.activeCrises.length === 0 && this.idols.length > 0) {
-                        this.generateCrisis();
-                    }
-
-                    this.financeHistory.push(this.budget);
-                    this.updateChart();
-
-                    this.addLog("Avanço de Tempo", `Mês ${this.currentMonth}/${this.currentYear} iniciado. Custos fixos deduzidos.`);
-                    this.refreshLucide();
-                },
-
-                generateCrisis() {
-                    const randomIdol = this.idols[Math.floor(Math.random() * this.idols.length)];
-                    const crisesPool = [
-                        {
-                            id: Date.now(),
-                            idolName: randomIdol.stageName,
-                            title: "Rumor de Namoro Vazado pelo Dispatch",
-                            description: `Fotos de ${randomIdol.stageName} jantando com um idol de outra agência vazaram na internet. O público exige posicionamento!`,
-                            options: [
-                                { text: "Confirmar Namoro", impactText: "Fandom Leal -15%, Reputação +5", action: () => { this.fanbaseLoyalty -= 15; this.reputation += 5; } },
-                                { text: "Negar Tudo (" + randomIdol.stageName + " é apenas amigo)", impactText: "Sem alteração imediata, risco de desmentido", action: () => { this.reputation -= 5; } },
-                                { text: "Colocar Idol em Hiato Temporário", impactText: "Estresse -20%, Fandom Leal -5%", action: () => { randomIdol.stress -= 20; this.fanbaseLoyalty -= 5; } }
-                            ]
-                        },
-                        {
-                            id: Date.now(),
-                            idolName: randomIdol.stageName,
-                            title: "Controvérsia de Vocal ao Vivo em Encore",
-                            description: `${randomIdol.stageName} desafinou durante uma performance ao vivo e o vídeo viralizou de forma negativa no TikTok.`,
-                            options: [
-                                { text: "Emitir Pedido de Desculpas", impactText: "Reputação +5, Estresse +10", action: () => { this.reputation += 5; randomIdol.stress += 10; } },
-                                { text: "Pagar Treinamento Vocal Intensivo ($10.000)", impactText: "Vocal +8, Orçamento -$10.000", action: () => { this.budget -= 10000; randomIdol.vocal += 8; } },
-                                { text: "Ignorar Críticas", impactText: "Reputação -10", action: () => { this.reputation -= 10; } }
-                            ]
-                        }
-                    ];
-
-                    this.activeCrises.push(crisesPool[Math.floor(Math.random() * crisesPool.length)]);
-                },
-
-                resolveCrisis(crisis, option) {
-                    option.action();
-                    this.activeCrises = this.activeCrises.filter(c => c.id !== crisis.id);
-                    this.addLog("PR Crise", `Crise de ${crisis.idolName} resolvida com a opção: ${option.text}`);
-                },
-
-                addLog(category, message) {
-                    this.eventLogs.unshift({
-                        id: Date.now(),
-                        date: `Mês ${this.currentMonth}/${this.currentYear}`,
-                        category: category,
-                        message: message
-                    });
-                },
-
-                updateChart() {
-                    const ctx = document.getElementById('financeChart');
-                    if (!ctx) return;
-
-                    if (this.chartInstance) {
-                        this.chartInstance.destroy();
-                    }
-
-                    this.chartInstance = new Chart(ctx, {
-                        type: 'line',
-                        data: {
-                            labels: this.financeHistory.map((_, index) => `Mês ${index + 1}`),
-                            datasets: [{
-                                label: 'Orçamento ($)',
-                                data: this.financeHistory,
-                                borderColor: '#ff2a85',
-                                backgroundColor: 'rgba(255, 42, 133, 0.1)',
-                                fill: true,
-                                tension: 0.4
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: { legend: { display: false } },
-                            scales: {
-                                y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255, 255, 255, 0.05)' } },
-                                x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255, 255, 255, 0.05)' } }
-                            }
-                        }
-                    });
-                }
-            };
-        }
-    </script>
+​<!-- TOP NAVIGATION BAR -->
+<header class="glass z-30 px-6 py-3 flex items-center justify-between border-b border-pink-500/20 shrink-0">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-kpop-pink to-kpop-purple flex items-center justify-center font-extrabold text-white shadow-lg shadow-pink-500/30 text-xl">
+K
+</div>
+<div class="flex items-center gap-2">
+<template x-if="!editingCompanyName">
+<div class="flex items-center gap-2">
+<h1 class="font-bold text-lg leading-none bg-gradient-to-r from-pink-400 via-purple-300 to-cyan-300 bg-clip-text text-transparent" x-text="companyName"></h1>
+<button @click="editingCompanyName = true" class="text-slate-400 hover:text-pink-400 transition" title="Renomear Empresa">
+<i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+</button>
+</div>
+</template>
+<template x-if="editingCompanyName">
+<div class="flex items-center gap-2">
+<input type="text" x-model="tempCompanyName" @keyup.enter="saveCompanyName()" class="bg-slate-900 border border-pink-500 rounded px-2 py-0.5 text-xs text-white focus:outline-none">
+<button @click="saveCompanyName()" class="text-emerald-400 hover:text-emerald-300 text-xs font-bold px-2 py-0.5 bg-emerald-950/60 rounded border border-emerald-500/40">Salvar</button>
+</div>
+</template>
+</div>
+</div>
+​<!-- KEY STATS HEADER -->
+<div class="flex items-center gap-3 md:gap-6 text-xs md:text-sm">
+<!-- Orçamento -->
+<div class="flex items-center gap-2 bg-slate-900/80 px-3 py-1.5 rounded-lg border border-emerald-500/30">
+<i data-lucide="dollar-sign" class="w-4 h-4 text-emerald-400"></i>
+<div>
+<span class="text-slate-400 text-[10px] block leading-none">ORÇAMENTO</span>
+<span class="font-bold text-emerald-400" x-text="formatMoney(budget)"></span>
+</div>
+</div>
+​<!-- Reputação -->
+<div class="flex items-center gap-2 bg-slate-900/80 px-3 py-1.5 rounded-lg border border-purple-500/30">
+<i data-lucide="award" class="w-4 h-4 text-purple-400"></i>
+<div>
+<span class="text-slate-400 text-[10px] block leading-none">REPUTAÇÃO</span>
+<span class="font-bold text-purple-300" x-text="reputation + '/100'"></span>
+</div>
+</div>
+​<!-- Data & Próximo Mês -->
+<div class="flex items-center gap-3 bg-slate-900/90 px-4 py-1.5 rounded-lg border border-cyan-500/30">
+<div>
+<span class="text-slate-400 text-[10px] block leading-none">TEMPO</span>
+<span class="font-bold text-cyan-300" x-text="'Mês ' + currentMonth + ' (' + currentYear + ')'"></span>
+</div>
+<button @click="nextMonth()" class="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-semibold text-xs px-3 py-1.5 rounded-md shadow-md transition flex items-center gap-1 active:scale-95">
+<span>Avançar Mês</span>
+<i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+</button>
+</div>
+</div>
+</header>
+​<!-- MAIN APP CONTAINER -->
+<div class="flex flex-1 overflow-hidden">
+​<!-- SIDEBAR NAVIGATION -->
+<aside class="w-64 glass border-r border-pink-500/20 flex flex-col justify-between shrink-0">
+<nav class="p-4 space-y-1.5 overflow-y-auto custom-scrollbar">
+<button @click="activeTab = 'dashboard'" :class="activeTab === 'dashboard' ? 'bg-gradient-to-r from-pink-500/20 to-purple-500/20 text-pink-400 border-pink-500/50' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 border-transparent'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-sm font-medium transition">
+<i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+<span>Dashboard</span>
+</button>
+​<button @click="activeTab = 'roster'" :class="activeTab === 'roster' ? 'bg-gradient-to-r from-pink-500/20 to-purple-500/20 text-pink-400 border-pink-500/50' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 border-transparent'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-sm font-medium transition">
+<i data-lucide="users" class="w-4 h-4"></i>
+<span>Elenco & Idols</span>
+<span class="ml-auto text-xs px-2 py-0.5 rounded-full bg-slate-800 text-pink-400" x-text="idols.length"></span>
+</button>
+​<button @click="activeTab = 'scout'" :class="activeTab === 'scout' ? 'bg-gradient-to-r from-pink-500/20 to-purple-500/20 text-pink-400 border-pink-500/50' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 border-transparent'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-sm font-medium transition">
+<i data-lucide="user-plus" class="w-4 h-4"></i>
+<span>Audições & Scouting</span>
+</button>
+​<button @click="activeTab = 'styling'" :class="activeTab === 'styling' ? 'bg-gradient-to-r from-pink-500/20 to-purple-500/20 text-pink-400 border-pink-500/50' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 border-transparent'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-sm font-medium transition">
+<i data-lucide="scissors" class="w-4 h-4"></i>
+<span>Salão & Visual SVG</span>
+</button>
+​<button @click="activeTab = 'groups'" :class="activeTab === 'groups' ? 'bg-gradient-to-r from-pink-500/20 to-purple-500/20 text-pink-400 border-pink-500/50' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 border-transparent'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-sm font-medium transition">
+<i data-lucide="sparkles" class="w-4 h-4"></i>
+<span>Grupos & Fandoms</span>
+<span class="ml-auto text-xs px-2 py-0.5 rounded-full bg-slate-800 text-purple-400" x-text="groups.length"></span>
+</button>
+​<button @click="activeTab = 'comeback'" :class="activeTab === 'comeback' ? 'bg-gradient-to-r from-pink-500/20 to-purple-500/20 text-pink-400 border-pink-500/50' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 border-transparent'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-sm font-medium transition">
+<i data-lucide="disc" class="w-4 h-4"></i>
+<span>Lançar Comeback</span>
+</button>
+​<button @click="activeTab = 'tours'" :class="activeTab === 'tours' ? 'bg-gradient-to-r from-pink-500/20 to-purple-500/20 text-pink-400 border-pink-500/50' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 border-transparent'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-sm font-medium transition">
+<i data-lucide="globe" class="w-4 h-4"></i>
+<span>Turnês & Shows</span>
+</button>
+​<button @click="activeTab = 'pr'" :class="activeTab === 'pr' ? 'bg-gradient-to-r from-pink-500/20 to-purple-500/20 text-pink-400 border-pink-500/50' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 border-transparent'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-sm font-medium transition relative">
+<i data-lucide="shield-alert" class="w-4 h-4"></i>
+<span>Crises (PR)</span>
+<template x-if="activeCrises.length > 0">
+<span class="ml-auto w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
+</template>
+</button>
+​<button @click="activeTab = 'social'" :class="activeTab === 'social' ? 'bg-gradient-to-r from-pink-500/20 to-purple-500/20 text-pink-400 border-pink-500/50' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 border-transparent'" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-sm font-medium transition">
+<i data-lucide="twitter" class="w-4 h-4"></i>
+<span>X (Twitter) & Trendings</span>
+</button>
+</nav>
+​<!-- MINI NOTIFICATION -->
+<div class="p-4 m-3 glass rounded-xl text-xs space-y-2 border border-slate-700/50">
+<div class="flex items-center gap-2 text-pink-400 font-semibold">
+<i data-lucide="bell" class="w-3.5 h-3.5"></i>
+<span>Destaque Recente</span>
+</div>
+<p class="text-slate-300 text-[11px] leading-relaxed line-clamp-3" x-text="recentNews"></p>
+</div>
+</aside>
+​<!-- CONTENT AREA -->
+<main class="flex-1 overflow-y-auto p-6 custom-scrollbar bg-slate-950/60">
+​<!-- MODAL DE REUNIÃO DE IDOL (1-ON-1 MEETING) -->
+<template x-if="activeMeeting">
+<div class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+<div class="glass max-w-lg w-full p-6 rounded-2xl border border-pink-500/40 space-y-4">
+<div class="flex items-center gap-4">
+<div class="w-16 h-16 rounded-xl overflow-hidden bg-slate-900 border border-pink-500/30 shrink-0" x-html="renderIdolSvg(activeMeeting.idol)"></div>
+<div>
+<span class="text-xs text-pink-400 font-semibold uppercase">Reunião Particular</span>
+<h3 class="text-xl font-bold text-white" x-text="activeMeeting.idol.stageName + ' pediu para conversar'"></h3>
+</div>
+</div>
+​<p class="text-sm text-slate-200 bg-slate-900/80 p-4 rounded-xl border border-slate-800 italic" x-text="'“' + activeMeeting.requestText + '”'"></p>
+​<div class="space-y-2 pt-2">
+<button @click="resolveMeeting(true)" class="w-full p-3 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 rounded-xl text-left flex justify-between items-center transition">
+<div>
+<p class="font-bold text-emerald-400 text-xs">Aceitar Pedido</p>
+<p class="text-[11px] text-slate-400" x-text="activeMeeting.acceptImpactText"></p>
+</div>
+<i data-lucide="check-circle" class="w-5 h-5 text-emerald-400"></i>
+</button>
+​<button @click="resolveMeeting(false)" class="w-full p-3 bg-red-600/20 hover:bg-red-600/30 border border-red-500/40 rounded-xl text-left flex justify-between items-center transition">
+<div>
+<p class="font-bold text-red-400 text-xs">Recusar Pedido</p>
+<p class="text-[11px] text-slate-400" x-text="activeMeeting.denyImpactText"></p>
+</div>
+<i data-lucide="x-circle" class="w-5 h-5 text-red-400"></i>
+</button>
+</div>
+</div>
+</div>
+</template>
+​<!-- TAB 1: DASHBOARD -->
+<template x-if="activeTab === 'dashboard'">
+<div class="space-y-6">
+<div>
+<h2 class="text-2xl font-bold text-white flex items-center gap-2">
+<span>Painel Principal</span>
+<span class="text-xs font-normal text-pink-400 bg-pink-500/10 px-2.5 py-1 rounded-full border border-pink-500/20" x-text="'Ano ' + currentYear"></span>
+</h2>
+<p class="text-slate-400 text-sm">Resumo da agência, reputação e alertas de gestão.</p>
+</div>
+​<!-- METRICS GRID -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+<div class="glass p-4 rounded-xl border-l-4 border-l-emerald-500 space-y-1">
+<span class="text-xs text-slate-400">Caixa Atual</span>
+<div class="text-2xl font-black text-emerald-400" x-text="formatMoney(budget)"></div>
+<p class="text-[11px] text-slate-400">Manutenção: <span class="text-red-400" x-text="formatMoney(monthlyExpenses)"></span>/mês</p>
+</div>
+​<div class="glass p-4 rounded-xl border-l-4 border-l-purple-500 space-y-1">
+<span class="text-xs text-slate-400">Reputação na Indústria</span>
+<div class="text-2xl font-black text-purple-400" x-text="reputation + ' / 100'"></div>
+<p class="text-[11px] text-slate-400">Gera melhores propostas comerciais</p>
+</div>
+​<div class="glass p-4 rounded-xl border-l-4 border-l-pink-500 space-y-1">
+<span class="text-xs text-slate-400">Total de Talentos</span>
+<div class="text-2xl font-black text-pink-400" x-text="idols.length"></div>
+<p class="text-[11px] text-slate-400" x-text="groups.length + ' Grupos formados'"></p>
+</div>
+​<div class="glass p-4 rounded-xl border-l-4 border-l-cyan-500 space-y-1">
+<span class="text-xs text-slate-400">Álbuns Vendidos</span>
+<div class="text-2xl font-black text-cyan-400" x-text="totalAlbumSales.toLocaleString()"></div>
+<p class="text-[11px] text-slate-400" x-text="totalMusicShowWins + ' Troféus de Music Shows'"></p>
+</div>
+</div>
+​<!-- GROUPS OVERVIEW -->
+<div class="glass p-5 rounded-2xl space-y-4">
+<h3 class="font-bold text-lg text-white flex items-center gap-2">
+<i data-lucide="sparkles" class="w-5 h-5 text-purple-400"></i>
+Grupos Ativos & Fandoms
+</h3>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<template x-for="group in groups" :key="group.id">
+<div class="glass p-4 rounded-xl border border-slate-700/60">
+<div class="flex justify-between items-start mb-2">
+<div>
+<h4 class="font-bold text-white text-base" x-text="group.name"></h4>
+<p class="text-xs text-pink-400" x-text="'Fandom: ' + group.fandomName"></p>
+</div>
+<span class="text-xs font-bold text-cyan-400 bg-cyan-500/10 px-2 py-1 rounded" x-text="group.fandomSize.toLocaleString() + ' Fãs do Grupo'"></span>
+</div>
+<div class="flex items-center -space-x-2 my-3">
+<template x-for="memberId in group.members" :key="memberId">
+<div class="w-9 h-9 rounded-full border-2 border-slate-900 overflow-hidden bg-slate-800" x-html="getIdolAvatarSvg(memberId)"></div>
+</template>
+</div>
+</div>
+</template>
+</div>
+</div>
+</div>
+</template>
+​<!-- TAB 2: ROSTER & IDOLS -->
+<template x-if="activeTab === 'roster'">
+<div class="space-y-6">
+<div class="flex justify-between items-center">
+<div>
+<h2 class="text-2xl font-bold text-white">Elenco de Idols & Trainees</h2>
+<p class="text-slate-400 text-sm">Acompanhe atributos de vocal, dança, rap, estabilidade e a base de fãs solo (Akgaes).</p>
+</div>
+</div>
+​<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+<template x-for="idol in idols" :key="idol.id">
+<div class="glass rounded-2xl p-5 border border-slate-700/50 hover:border-pink-500/40 transition space-y-4">
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-3">
+<div class="w-14 h-14 rounded-xl border border-pink-500/30 overflow-hidden bg-slate-900 shrink-0" x-html="renderIdolSvg(idol)"></div>
+<div>
+<h3 class="font-bold text-lg text-white leading-snug" x-text="idol.stageName"></h3>
+<p class="text-xs text-slate-400" x-text="idol.gender + ' • ' + idol.age + ' anos'"></p>
+<p class="text-[11px] text-pink-400 font-semibold" x-text="idol.soloFandom.toLocaleString() + ' Akgaes / Fãs Solo'"></p>
+</div>
+</div>
+<span :class="idol.status === 'Debutado' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'" class="text-[10px] font-bold px-2 py-0.5 rounded-full" x-text="idol.status"></span>
+</div>
+​<!-- STATS BARS -->
+<div class="space-y-2 text-xs">
+<div>
+<div class="flex justify-between text-slate-300 mb-1">
+<span>Vocal</span>
+<span class="font-bold text-cyan-400" x-text="idol.vocal"></span>
+</div>
+<div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-cyan-400" :style="'width: ' + idol.vocal + '%'"></div>
+</div>
+</div>
+​<div>
+<div class="flex justify-between text-slate-300 mb-1">
+<span>Dança</span>
+<span class="font-bold text-purple-400" x-text="idol.dance"></span>
+</div>
+<div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-purple-400" :style="'width: ' + idol.dance + '%'"></div>
+</div>
+</div>
+​<div>
+<div class="flex justify-between text-slate-300 mb-1">
+<span>Rap (Técnico Solo)</span>
+<span class="font-bold text-amber-400" x-text="idol.rap"></span>
+</div>
+<div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-amber-400" :style="'width: ' + idol.rap + '%'"></div>
+</div>
+</div>
+​<div>
+<div class="flex justify-between text-slate-300 mb-1">
+<span>Estabilidade Ao Vivo</span>
+<span class="font-bold text-emerald-400" x-text="idol.stability + '%'"></span>
+</div>
+<div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-emerald-400" :style="'width: ' + idol.stability + '%'"></div>
+</div>
+</div>
+​<div>
+<div class="flex justify-between text-slate-300 mb-1">
+<span>Carisma & Variedade</span>
+<span class="font-bold text-pink-400" x-text="idol.charisma"></span>
+</div>
+<div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-pink-400" :style="'width: ' + idol.charisma + '%'"></div>
+</div>
+</div>
+​<div>
+<div class="flex justify-between text-slate-300 mb-1">
+<span>Estresse</span>
+<span :class="idol.stress > 70 ? 'text-red-400' : 'text-slate-400'" class="font-bold" x-text="idol.stress + '%'"></span>
+</div>
+<div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+<div :class="idol.stress > 70 ? 'bg-red-500' : 'bg-slate-400'" class="h-full rounded-full" :style="'width: ' + idol.stress + '%'"></div>
+</div>
+</div>
+</div>
+​<!-- ACTIONS -->
+<div class="grid grid-cols-2 gap-2 pt-1">
+<button @click="trainIdol(idol, 'vocal')" class="px-2 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs transition">
+Treinar Vocal ($1k)
+</button>
+<button @click="trainIdol(idol, 'dance')" class="px-2 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs transition">
+Treinar Dança ($1k)
+</button>
+<button @click="trainIdol(idol, 'rap')" class="px-2 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs transition">
+Treinar Rap ($1k)
+</button>
+<button @click="restIdol(idol)" class="px-2 py-1.5 bg-emerald-900/40 hover:bg-emerald-900/60 text-emerald-300 rounded-lg text-xs transition">
+Descanso
+</button>
+</div>
+</div>
+</template>
+</div>
+</div>
+</template>
+​<!-- TAB 3: SCOUTING -->
+<template x-if="activeTab === 'scout'">
+<div class="space-y-6">
+<div>
+<h2 class="text-2xl font-bold text-white">Audições & Scouting</h2>
+<p class="text-slate-400 text-sm">Encontre novos potenciais Idols masculinos ou femininos.</p>
+</div>
+​<div class="flex gap-4">
+<button @click="runScout('local')" class="glass p-4 rounded-xl flex-1 text-left hover:border-pink-500 transition">
+<h3 class="font-bold text-pink-400 text-base">Audição Nacional ($5.000)</h3>
+<p class="text-xs text-slate-400">Candidatos locais da Coreia.</p>
+</button>
+<button @click="runScout('global')" class="glass p-4 rounded-xl flex-1 text-left hover:border-purple-500 transition">
+<h3 class="font-bold text-purple-400 text-base">Audição Global ($20.000)</h3>
+<p class="text-xs text-slate-400">Talentos internacionais com maiores estatísticas.</p>
+</button>
+</div>
+​<div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+<template x-for="candidate in scoutCandidates" :key="candidate.id">
+<div class="glass p-5 rounded-2xl space-y-4 border border-slate-700">
+<div class="flex items-center gap-3">
+<div class="w-14 h-14 rounded-xl border border-purple-500/30 overflow-hidden bg-slate-900 shrink-0" x-html="renderIdolSvg(candidate)"></div>
+<div>
+<h4 class="font-bold text-lg text-white" x-text="candidate.stageName"></h4>
+<p class="text-xs text-slate-400" x-text="candidate.gender + ' • ' + candidate.age + ' anos'"></p>
+</div>
+</div>
+<div class="space-y-1 text-xs">
+<p class="flex justify-between"><span class="text-slate-400">Vocal:</span> <span class="font-bold text-cyan-400" x-text="candidate.vocal"></span></p>
+<p class="flex justify-between"><span class="text-slate-400">Dança:</span> <span class="font-bold text-purple-400" x-text="candidate.dance"></span></p>
+<p class="flex justify-between"><span class="text-slate-400">Rap:</span> <span class="font-bold text-amber-400" x-text="candidate.rap"></span></p>
+<p class="flex justify-between"><span class="text-slate-400">Estabilidade:</span> <span class="font-bold text-emerald-400" x-text="candidate.stability + '%'"></span></p>
+</div>
+<button @click="signTrainee(candidate)" class="w-full py-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold rounded-xl text-xs">
+Assinar Contrato
+</button>
+</div>
+</template>
+</div>
+</div>
+</template>
+​<!-- TAB 4: STYLING & SVG -->
+<template x-if="activeTab === 'styling'">
+<div class="space-y-6">
+<div>
+<h2 class="text-2xl font-bold text-white">Salão de Visual & Styling SVG</h2>
+<p class="text-slate-400 text-sm">Altere cabelos, tons de pele e cor dos cabelos para os comebacks.</p>
+</div>
+​<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<div class="glass p-5 rounded-2xl space-y-3">
+<h3 class="font-bold text-sm text-slate-300">Escolha o Idol</h3>
+<div class="space-y-2 max-h-96 overflow-y-auto custom-scrollbar">
+<template x-for="idol in idols" :key="idol.id">
+<div @click="selectedStylingIdol = idol" :class="selectedStylingIdol?.id === idol.id ? 'border-pink-500 bg-pink-500/10' : 'border-slate-800 bg-slate-900/60'" class="p-3 rounded-xl border flex items-center gap-3 cursor-pointer">
+<div class="w-10 h-10 rounded-lg overflow-hidden bg-slate-950 shrink-0" x-html="renderIdolSvg(idol)"></div>
+<div>
+<p class="font-bold text-sm text-white" x-text="idol.stageName"></p>
+<p class="text-xs text-slate-400" x-text="idol.gender"></p>
+</div>
+</div>
+</template>
+</div>
+</div>
+​<div class="lg:col-span-2 glass p-6 rounded-2xl space-y-6">
+<template x-if="selectedStylingIdol">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+<div class="flex flex-col items-center justify-center p-6 bg-slate-900/90 rounded-2xl border border-pink-500/30">
+<div class="w-40 h-40 rounded-2xl overflow-hidden border-2 border-pink-500/50 bg-slate-950 mb-3" x-html="renderIdolSvg(selectedStylingIdol)"></div>
+<h4 class="font-bold text-xl text-white" x-text="selectedStylingIdol.stageName"></h4>
+</div>
+​<div class="space-y-4 text-xs">
+<div>
+<label class="block font-semibold text-slate-300 mb-1">Corte do Cabelo</label>
+<select x-model="selectedStylingIdol.hairStyle" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+<option value="short_kpop">Curto Idol</option>
+<option value="long_straight">Longo Diva</option>
+<option value="curly_swag">Ondulado Swag</option>
+<option value="bun_kpop">Coque Cute</option>
+<option value="undercut">Undercut Rebel</option>
+</select>
+</div>
+​<div>
+<label class="block font-semibold text-slate-300 mb-1">Cor do Cabelo</label>
+<input type="color" x-model="selectedStylingIdol.hairColor" class="w-12 h-10 rounded-lg bg-transparent border-0 cursor-pointer">
+</div>
+​<button @click="applyMakeoverCost()" class="w-full py-2.5 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold rounded-xl shadow-lg">
+Confirmar Styling ($2.000)
+</button>
+</div>
+</div>
+</template>
+</div>
+</div>
+</div>
+</template>
+​<!-- TAB 5: GROUPS & FANDOMS -->
+<template x-if="activeTab === 'groups'">
+<div class="space-y-6">
+<div>
+<h2 class="text-2xl font-bold text-white">Formação de Grupos & Fandoms</h2>
+<p class="text-slate-400 text-sm">Monte grupos Boygroup, Girlgroup ou Mistos e escolha o nome oficial do Fandom.</p>
+</div>
+​<div class="glass p-6 rounded-2xl border border-purple-500/30 space-y-4">
+<h3 class="font-bold text-lg text-white">Criar Novo Grupo</h3>
+​<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<div>
+<label class="block text-xs text-slate-400 mb-1">Nome do Grupo</label>
+<input type="text" x-model="newGroupName" placeholder="Ex: AESPA, BTS..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white">
+</div>
+<div>
+<label class="block text-xs text-slate-400 mb-1">Nome do Fandom Oficial</label>
+<input type="text" x-model="newGroupFandom" placeholder="Ex: MY, ARMY, BLINK..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white">
+</div>
+<div>
+<label class="block text-xs text-slate-400 mb-1">Conceito</label>
+<select x-model="newGroupConcept" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white">
+<option value="Girl Crush / Dark">Girl Crush / Dark</option>
+<option value="Teen Fresh / Fofo">Teen Fresh / Fofo</option>
+<option value="Retro / Synthwave">Retro / Synthwave</option>
+<option value="Hip-Hop / Swag">Hip-Hop / Swag</option>
+</select>
+</div>
+</div>
+​<div>
+<label class="block text-xs text-slate-400 mb-2">Selecione os Membros:</label>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+<template x-for="idol in idols" :key="idol.id">
+<label class="flex items-center gap-3 p-3 rounded-xl glass border border-slate-800 cursor-pointer">
+<input type="checkbox" :value="idol.id" x-model="selectedIdolsForGroup" class="accent-pink-500">
+<div class="w-8 h-8 rounded-lg overflow-hidden bg-slate-900 shrink-0" x-html="renderIdolSvg(idol)"></div>
+<div class="text-xs">
+<p class="font-bold text-white" x-text="idol.stageName"></p>
+<p class="text-[10px] text-slate-400" x-text="idol.gender"></p>
+</div>
+</label>
+</template>
+</div>
+</div>
+​<button @click="createGroup()" class="px-6 py-2.5 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold rounded-xl text-xs">
+Realizar Debut Oficial
+</button>
+</div>
+</div>
+</template>
+​<!-- TAB 6: COMEBACK -->
+<template x-if="activeTab === 'comeback'">
+<div class="space-y-6">
+<div>
+<h2 class="text-2xl font-bold text-white">Planejar Comeback</h2>
+<p class="text-slate-400 text-sm">Defina detalhes da música, clipe, estilo de vocal e presenças de rap.</p>
+</div>
+​<div class="glass p-6 rounded-2xl border border-pink-500/30 space-y-6">
+<div>
+<label class="block text-xs font-semibold text-slate-300 mb-2">1. Escolha o Grupo</label>
+<select x-model="cbSelectedGroup" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-white">
+<option value="">-- Selecione o Grupo --</option>
+<template x-for="g in groups" :key="g.id">
+<option :value="g.id" x-text="g.name"></option>
+</template>
+</select>
+</div>
+​<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<div>
+<label class="block text-xs font-semibold text-slate-300 mb-2">Título da Música Principal</label>
+<input type="text" x-model="cbAlbumTitle" placeholder="Ex: Supernova, Drama..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white">
+</div>
+<div>
+<label class="block text-xs font-semibold text-slate-300 mb-2">Estilo de canto nas Performances</label>
+<select x-model="cbSingingStyle" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white">
+<option value="live">100% Ao Vivo (Exige Alta Estabilidade)</option>
+<option value="mr">Base Vocal (Seguro)</option>
+<option value="playback">100% Playback (Risco de Hate por Fraude)</option>
+</select>
+</div>
+<div>
+<label class="block text-xs font-semibold text-slate-300 mb-2">Orçamento da Produção Musical</label>
+<select x-model="cbMusicQuality" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white">
+<option value="low">Indie ($10.000)</option>
+<option value="medium">Produtor Consagrado ($35.000)</option>
+<option value="high">Hitmaker Internacional ($80.000)</option>
+</select>
+</div>
+</div>
+​<!-- OPÇÃO DE TER RAP SEPARADA -->
+<div class="flex items-center gap-3 glass p-4 rounded-xl border border-amber-500/30">
+<input type="checkbox" x-model="cbHasRapSection" id="rapCheck" class="w-4 h-4 accent-amber-500">
+<label for="rapCheck" class="text-xs text-slate-200 cursor-pointer">
+<span class="font-bold text-amber-400 block">Incluir Seção de Rap na Música</span>
+<span class="text-[11px] text-slate-400">Usa os atributos técnicos de Rap dos integrantes. Se desmarcado, a faixa focará 100% em Vocal e Dança.</span>
+</label>
+</div>
+​<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div>
+<label class="block text-xs font-semibold text-slate-300 mb-2">Modo de Acompanhamento</label>
+<select x-model="cbTrackingMode" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white">
+<option value="fast">Resumido (Simular mês de uma vez)</option>
+<option value="weekly">Semanal (Promover e reagir aos charts a cada semana)</option>
+</select>
+</div>
+</div>
+​<button @click="launchComeback()" class="w-full py-3 bg-gradient-to-r from-pink-500 via-purple-600 to-cyan-500 text-white font-bold rounded-xl shadow-lg">
+Iniciar Era do Comeback! 🚀
+</button>
+</div>
+​<!-- PROMOÇÕES SEMANAIS (QUANDO EM MODO SEMANAL) -->
+<template x-if="activeComebackEra">
+<div class="glass p-6 rounded-2xl border border-cyan-500/40 space-y-4">
+<div class="flex justify-between items-center">
+<div>
+<h3 class="font-bold text-lg text-white" x-text="'Promovendo: ' + activeComebackEra.title + ' (' + activeComebackEra.group.name + ')'"></h3>
+<p class="text-xs text-cyan-400" x-text="'Semana ' + activeComebackEra.currentWeek + ' de 4'"></p>
+</div>
+<span class="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/30" x-text="'Vendas na Semana: ' + activeComebackEra.weeklySales.toLocaleString()"></span>
+</div>
+​<div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+<button @click="buyPromoAction('tiktok')" class="p-3 bg-slate-900 hover:bg-slate-800 rounded-xl border border-slate-700 text-left space-y-1">
+<p class="font-bold text-xs text-pink-400">Desafio TikTok / Reels ($3.000)</p>
+<p class="text-[10px] text-slate-400">Viraliza no público jovem.</p>
+</button>
+<button @click="buyPromoAction('food')" class="p-3 bg-slate-900 hover:bg-slate-800 rounded-xl border border-slate-700 text-left space-y-1">
+<p class="font-bold text-xs text-purple-400">Mimos de Comida pros Fãs ($8.000)</p>
+<p class="text-[10px] text-slate-400">Aumenta lealdade do fandom.</p>
+</button>
+<button @click="buyPromoAction('gangnam')" class="p-3 bg-slate-900 hover:bg-slate-800 rounded-xl border border-slate-700 text-left space-y-1">
+<p class="font-bold text-xs text-cyan-400">Outdoors em Gangnam ($25.000)</p>
+<p class="text-[10px] text-slate-400">Impulso maciço nos charts digitais.</p>
+</button>
+</div>
+​<button @click="advancePromoWeek()" class="w-full py-2 bg-gradient-to-r from-cyan-500 to-purple-600 font-bold text-white rounded-xl text-xs">
+Avançar para Próxima Semana do Comeback →
+</button>
+</div>
+</template>
+</div>
+</template>
+​<!-- TAB 7: TOURS -->
+<template x-if="activeTab === 'tours'">
+<div class="space-y-6">
+<div>
+<h2 class="text-2xl font-bold text-white">Gerenciamento de Turnês</h2>
+<p class="text-slate-400 text-sm">Agende turnês nacionais, asiáticas ou globais de acordo com a fama do grupo.</p>
+</div>
+​<div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+<div class="glass p-5 rounded-2xl border border-slate-700 space-y-3">
+<h3 class="font-bold text-pink-400 text-base">Turnê Nacional (Coreia)</h3>
+<p class="text-xs text-slate-400">Custo: $20.000 | Fama Mínima: Baixa | Lucro Seguro.</p>
+<button @click="startTour('local')" class="w-full py-2 bg-pink-600 hover:bg-pink-700 text-white font-bold rounded-xl text-xs">Realizar Tour Coreana</button>
+</div>
+​<div class="glass p-5 rounded-2xl border border-purple-500/40 space-y-3">
+<h3 class="font-bold text-purple-400 text-base">Turnê Asiática (Japão/China)</h3>
+<p class="text-xs text-slate-400">Custo: $60.000 | Fama Mínima: Média | Alto impacto em vendas físicas.</p>
+<button @click="startTour('asia')" class="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs">Realizar Tour Asiática</button>
+</div>
+​<div class="glass p-5 rounded-2xl border border-cyan-500/40 space-y-3">
+<h3 class="font-bold text-cyan-400 text-base">World Tour (Global)</h3>
+<p class="text-xs text-slate-400">Custo: $150.000 | Fama Mínima: Alta | Retorno financeiro gigantesco.</p>
+<button @click="startTour('world')" class="w-full py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-bold rounded-xl text-xs">Realizar World Tour</button>
+</div>
+</div>
+</div>
+</template>
+​<!-- TAB 8: PR & CRISIS -->
+<template x-if="activeTab === 'pr'">
+<div class="space-y-6">
+<div>
+<h2 class="text-2xl font-bold text-white">Gerenciamento de Crises</h2>
+<p class="text-slate-400 text-sm">Resolva escândalos de namoros, gafes e fofocas do Dispatch.</p>
+</div>
+​<div class="space-y-4">
+<template x-for="crisis in activeCrises" :key="crisis.id">
+<div class="glass p-6 rounded-2xl border border-red-500/40 bg-red-950/10 space-y-4">
+<h3 class="font-bold text-lg text-white" x-text="crisis.title"></h3>
+<p class="text-sm text-slate-300" x-text="crisis.description"></p>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+<template x-for="option in crisis.options" :key="option.text">
+<button @click="resolveCrisis(crisis, option)" class="p-3 bg-slate-900 border border-slate-700 rounded-xl text-left hover:border-pink-500 transition">
+<p class="text-xs font-bold text-pink-400" x-text="option.text"></p>
+<p class="text-[10px] text-slate-400" x-text="option.impactText"></p>
+</button>
+</template>
+</div>
+</div>
+</template>
+</div>
+</div>
+</template>
+​<!-- TAB 9: X (TWITTER) FEED -->
+<template x-if="activeTab === 'social'">
+<div class="space-y-6">
+<div>
+<h2 class="text-2xl font-bold text-white flex items-center gap-2">
+<i data-lucide="twitter" class="w-6 h-6 text-cyan-400"></i>
+X (Twitter) & Trendings em Tempo Real
+</h2>
+<p class="text-slate-400 text-sm">Acompanhe hashtags de fãs, comentários de haters e reakções dos Akgaes.</p>
+</div>
+​<div class="glass rounded-2xl p-4 max-w-2xl mx-auto space-y-3">
+<template x-for="post in socialPosts" :key="post.id">
+<div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2">
+<div class="flex justify-between items-center text-xs">
+<div class="flex items-center gap-2">
+<span class="font-bold text-pink-400" x-text="post.handle"></span>
+<span class="text-slate-500" x-text="post.time"></span>
+</div>
+<span class="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-400" x-text="post.tag"></span>
+</div>
+<p class="text-sm text-slate-200" x-text="post.content"></p>
+</div>
+</template>
+</div>
+</div>
+</template>
+​</main>
+</div>
+​<!-- SCRIPT DA LÓGICA DO JOGO -->
+<script>
+function kpopGame() {
+return {
+companyName: "HYBE Lite Ent.",
+editingCompanyName: false,
+tempCompanyName: "",
+budget: 200000,
+reputation: 60,
+currentMonth: 1,
+currentYear: 2026,
+activeTab: 'dashboard',
+​selectedStylingIdol: null,
+activeMeeting: null,
+activeComebackEra: null,
+​totalAlbumSales: 0,
+totalMusicShowWins: 0,
+monthlyExpenses: 10000,
+recentNews: "Empresa fundada! Crie o seu primeiro grupo de sucesso.",
+​idols: [
+{ id: 1, stageName: "Minho", gender: "Masculino", age: 19, vocal: 78, dance: 85, rap: 70, stability: 80, charisma: 75, stress: 15, status: "Debutado", soloFandom: 5400, skinTone: "#fcd5ce", hairStyle: "short_kpop", hairColor: "#9d4edf" },
+{ id: 2, stageName: "Jennie", gender: "Feminino", age: 18, vocal: 88, dance: 72, rap: 82, stability: 85, charisma: 90, stress: 10, status: "Debutado", soloFandom: 8900, skinTone: "#f8d7da", hairStyle: "long_straight", hairColor: "#ff2a85" }
+],
+groups: [
+{ id: 101, name: "NEO NOVA", fandomName: "NOVAs", concept: "Girl Crush / Dark", members: [1, 2], fandomSize: 15000 }
+],
+scoutCandidates: [],
+activeCrises: [],
+socialPosts: [
+{ id: 1, handle: "@KpopZuu", time: "Há 1h", tag: "#NEONOVA", content: "O grupo NEO NOVA é surreal! Aguardando o próximo comeback ansiosamente! 🔥" }
+],
+​// Form States
+cbSelectedGroup: "",
+cbAlbumTitle: "",
+cbSingingStyle: "mr",
+cbMusicQuality: "medium",
+cbHasRapSection: true,
+cbTrackingMode: "fast",
+​newGroupName: "",
+newGroupFandom: "",
+newGroupConcept: "Girl Crush / Dark",
+selectedIdolsForGroup: [],
+​initGame() {
+this.tempCompanyName = this.companyName;
+this.generateScoutCandidates();
+this.refreshLucide();
+},
+​saveCompanyName() {
+if (this.tempCompanyName.trim()) {
+this.companyName = this.tempCompanyName.trim();
+}
+this.editingCompanyName = false;
+},
+​refreshLucide() {
+setTimeout(() => { lucide.createIcons(); }, 50);
+},
+​formatMoney(amount) {
+return '$' + amount.toLocaleString('en-US');
+},
+​renderIdolSvg(idol) {
+if (!idol) return '';
+const skin = idol.skinTone || '#fcd5ce';
+const hairColor = idol.hairColor || '#9d4edf';
+const style = idol.hairStyle || 'short_kpop';
+​let hairPath = <path d="M 20 40 Q 50 10 80 40 Q 80 25 50 18 Q 20 25 20 40 Z" fill="${hairColor}" />;
+if (style === 'long_straight') {
+hairPath = <path d="M 18 40 Q 50 12 82 40 L 85 85 Q 75 88 72 60 L 72 40 Q 50 22 28 40 L 28 60 Q 25 88 15 85 Z" fill="${hairColor}" />;
+}
+​return <svg viewBox="0 0 100 100" class="w-full h-full"> <rect width="100" height="100" fill="#0f172a" /> <path d="M 20 100 Q 50 75 80 100 Z" fill="#334155" /> <rect x="43" y="58" width="14" height="16" fill="${skin}" rx="3" /> <ellipse cx="50" cy="46" rx="24" ry="26" fill="${skin}" /> <ellipse cx="40" cy="45" rx="3" ry="4" fill="#0f172a" /> <ellipse cx="60" cy="45" rx="3" ry="4" fill="#0f172a" /> <path d="M 45 56 Q 50 60 55 56" stroke="#e11d48" stroke-width="2" fill="none" /> ${hairPath} </svg>;
+},
+​getIdolAvatarSvg(id) {
+const idol = this.idols.find(i => i.id === id);
+return this.renderIdolSvg(idol);
+},
+​trainIdol(idol, type) {
+if (this.budget < 1000) return alert("Sem orçamento suficiente!");
+this.budget -= 1000;
+idol.stress = Math.min(100, idol.stress + 8);
+if (type === 'vocal') idol.vocal = Math.min(99, idol.vocal + 2);
+if (type === 'dance') idol.dance = Math.min(99, idol.dance + 2);
+if (type === 'rap') idol.rap = Math.min(99, idol.rap + 2);
+},
+​restIdol(idol) {
+idol.stress = Math.max(0, idol.stress - 20);
+},
+​runScout(type) {
+const cost = type === 'local' ? 5000 : 20000;
+if (this.budget < cost) return alert("Orçamento insuficiente!");
+this.budget -= cost;
+this.generateScoutCandidates(type === 'global');
+},
+​generateScoutCandidates(isGlobal = false) {
+const names = ["Felix", "Hanni", "Kai", "Yuna", "Chae", "Sunoo"];
+const bonus = isGlobal ? 15 : 0;
+this.scoutCandidates = Array.from({ length: 3 }, (_, i) => ({
+id: Date.now() + i,
+stageName: names[Math.floor(Math.random() * names.length)],
+gender: Math.random() > 0.5 ? "Feminino" : "Masculino",
+age: 17,
+vocal: 50 + bonus,
+dance: 50 + bonus,
+rap: 45 + bonus,
+stability: 60 + bonus,
+charisma: 50 + bonus,
+stress: 5,
+status: "Trainee",
+soloFandom: 500,
+hairStyle: "short_kpop",
+hairColor: "#ff2a85",
+skinTone: "#fcd5ce"
+}));
+},
+​signTrainee(candidate) {
+this.idols.push(candidate);
+this.scoutCandidates = this.scoutCandidates.filter(c => c.id !== candidate.id);
+},
+​createGroup() {
+if (!this.newGroupName || this.selectedIdolsForGroup.length === 0) return alert("Preencha todos os campos!");
+const group = {
+id: Date.now(),
+name: this.newGroupName,
+fandomName: this.newGroupFandom || "Fans",
+concept: this.newGroupConcept,
+members: [...this.selectedIdolsForGroup].map(Number),
+fandomSize: 2000
+};
+this.groups.push(group);
+this.newGroupName = "";
+this.selectedIdolsForGroup = [];
+this.activeTab = 'dashboard';
+},
+​launchComeback() {
+if (!this.cbSelectedGroup || !this.cbAlbumTitle) return alert("Selecione o grupo e o título!");
+const group = this.groups.find(g => g.id == this.cbSelectedGroup);
+let cost = 30000;
+if (this.budget < cost) return alert("Sem saldo suficiente!");
+​this.budget -= cost;
+​if (this.cbTrackingMode === 'weekly') {
+this.activeComebackEra = {
+group: group,
+title: this.cbAlbumTitle,
+currentWeek: 1,
+weeklySales: 15000
+};
+} else {
+const sales = Math.floor(Math.random() * 80000) + 20000;
+const revenue = sales * 4;
+this.budget += revenue;
+this.totalAlbumSales += sales;
+alert(Comeback Concluído!\nVendas: ${sales.toLocaleString()}\nReceita: ${this.formatMoney(revenue)});
+}
+},
+​advancePromoWeek() {
+if (!this.activeComebackEra) return;
+this.activeComebackEra.currentWeek++;
+this.activeComebackEra.weeklySales += Math.floor(Math.random() * 10000) + 5000;
+​if (this.activeComebackEra.currentWeek > 4) {
+alert("Era de promoções concluída com sucesso!");
+this.activeComebackEra = null;
+}
+},
+​buyPromoAction(type) {
+if (type === 'tiktok' && this.budget >= 3000) { this.budget -= 3000; this.activeComebackEra.weeklySales += 4000; }
+if (type === 'food' && this.budget >= 8000) { this.budget -= 8000; this.activeComebackEra.weeklySales += 9000; }
+if (type === 'gangnam' && this.budget >= 25000) { this.budget -= 25000; this.activeComebackEra.weeklySales += 25000; }
+},
+​startTour(type) {
+let cost = type === 'local' ? 20000 : (type === 'asia' ? 60000 : 150000);
+if (this.budget < cost) return alert("Sem orçamento para esta turnê!");
+this.budget -= cost;
+const profit = cost * 2.2;
+this.budget += profit;
+alert(Turnê finalizada com sucesso! Lucro gerado: ${this.formatMoney(profit - cost)});
+},
+​nextMonth() {
+this.currentMonth++;
+if (this.currentMonth > 12) {
+this.currentMonth = 1;
+this.currentYear++;
+}
+this.budget -= this.monthlyExpenses;
+​// Trigger 1-on-1 Random Meeting
+if (Math.random() < 0.3 && this.idols.length > 0) {
+const randomIdol = this.idols[Math.floor(Math.random() * this.idols.length)];
+this.activeMeeting = {
+idol: randomIdol,
+requestText: CEO, estive treinando duro. Gostaria de tirar uma semana de férias com minha família.,
+acceptImpactText: "Estresse -20%, Lealdade +15",
+denyImpactText: "Estresse +15%, Lealdade -10"
+};
+}
+this.refreshLucide();
+},
+​resolveMeeting(accepted) {
+if (accepted) {
+this.activeMeeting.idol.stress = Math.max(0, this.activeMeeting.idol.stress - 20);
+} else {
+this.activeMeeting.idol.stress += 15;
+}
+this.activeMeeting = null;
+}
+};
+}
+</script>
 </body>
-</html>
-```html
-```
+    </html>
