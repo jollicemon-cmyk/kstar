@@ -1,0 +1,107 @@
+html
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full bg-slate-950 text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>K-Pop Empire Manager</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        kpop: {
+                            pink: '#ff2a85',
+                            purple: '#9d4edf',
+                            cyan: '#00f5d4',
+                            dark: '#0f0a1e',
+                            card: '#1a1429'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Fontes Google -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass {
+            background: rgba(26, 20, 41, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 42, 133, 0.15);
+        }
+        .glass-hover:hover {
+            border-color: rgba(255, 42, 133, 0.4);
+            box-shadow: 0 0 20px rgba(255, 42, 133, 0.15);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(15, 10, 30, 0.6);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #ff2a85;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col overflow-hidden custom-scrollbar" x-data="kpopGame()" x-init="initGame()">
+
+    <!-- TOP NAVIGATION BAR -->
+    <header class="glass z-30 px-6 py-3 flex items-center justify-between border-b border-pink-500/20 shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-kpop-pink to-kpop-purple flex items-center justify-center font-extrabold text-white shadow-lg shadow-pink-500/30 text-xl">
+                K
+            </div>
+            <div class="flex items-center gap-2">
+                <template x-if="!editingCompanyName">
+                    <div class="flex items-center gap-2 group">
+                        <h1 class="font-bold text-lg leading-none bg-gradient-to-r from-pink-400 via-purple-300 to-cyan-300 bg-clip-text text-transparent" x-text="companyName"></h1>
+                        <button @click="editingCompanyName = true" class="text-slate-400 hover:text-pink-400 transition" title="Renomear Empresa">
+                            <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                </template>
+                <template x-if="editingCompanyName">
+                    <div class="flex items-center gap-2">
+                        <input type="text" x-model="tempCompanyName" @keyup.enter="saveCompanyName()" class="bg-slate-900 border border-pink-500 rounded px-2 py-0.5 text-xs text-white focus:outline-none">
+                        <button @click="saveCompanyName()" class="text-emerald-400 hover:text-emerald-300 text-xs font-bold px-2 py-0.5 bg-emerald-950/60 rounded border border-emerald-500/40">Salvar</button>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <!-- KEY STATS HEADER -->
+        <div class="flex items-center gap-3 md:gap-6 text-xs md:text-sm">
+            <!-- Orçamento -->
+            <div class="flex items-center gap-2 bg-slate-900/80 px-3 py-1.5 rounded-lg border border-emerald-500/30">
+                <i data-lucide="dollar-sign" class="w-4 h-4 text-emerald-400"></i>
+                <div>
+                    <span class="text-slate-400 text-[10px] block leading-none">ORÇAMENTO</span>
+                    <span class="font-bold text-emerald-400" x-text="formatMoney(budget)"></span>
+                </div>
+            </div>
+
+            <!-- Reputação -->
+            <div class="flex items-center gap-2 bg-slate-900/80 px-3 py-1.5 rounded-lg border border-purple-500/30">
+                <i data-lucide="award" class="w-4 h-4 text-purple-400"></i>
+                <div>
+                    <span class="text-slate-400 text-[10px] block leading-none">REPUTAÇÃO</span>
+                    <span class="font-bold text-purple-300" x-text="reputation + '/100'"></span>
+                </div>
+            </div>
+
+            <!-- Fandom global -->
+            <div class="flex items-center gap-2 bg-slate-900/80 px-3 p
