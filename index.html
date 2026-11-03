@@ -649,7 +649,7 @@ Avançar para Próxima Semana do Comeback →
 <i data-lucide="twitter" class="w-6 h-6 text-cyan-400"></i>
 X (Twitter) & Trendings em Tempo Real
 </h2>
-<p class="text-slate-400 text-sm">Acompanhe hashtags de fãs, comentários de haters e reakções dos Akgaes.</p>
+<p class="text-slate-400 text-sm">Acompanhe hashtags de fãs, comentários de haters e reações dos Akgaes.</p>
 </div>
 ​<div class="glass rounded-2xl p-4 max-w-2xl mx-auto space-y-3">
 <template x-for="post in socialPosts" :key="post.id">
@@ -722,8 +722,13 @@ this.companyName = this.tempCompanyName.trim();
 }
 this.editingCompanyName = false;
 },
+​applyMakeoverCost() {
+if (this.budget < 2000) return alert("Sem orçamento para styling!");
+this.budget -= 2000;
+alert("Novo visual salvo!");
+},
 ​refreshLucide() {
-setTimeout(() => { lucide.createIcons(); }, 50);
+setTimeout(() => { if (window.lucide) lucide.createIcons(); }, 50);
 },
 ​formatMoney(amount) {
 return '$' + amount.toLocaleString('en-US');
@@ -818,7 +823,7 @@ const sales = Math.floor(Math.random() * 80000) + 20000;
 const revenue = sales * 4;
 this.budget += revenue;
 this.totalAlbumSales += sales;
-alert(Comeback Concluído!\nVendas: ${sales.toLocaleString()}\nReceita: ${this.formatMoney(revenue)});
+alert("Comeback Concluído!\nVendas: " + sales.toLocaleString() + "\nReceita: " + this.formatMoney(revenue));
 }
 },
 ​advancePromoWeek() {
@@ -841,7 +846,7 @@ if (this.budget < cost) return alert("Sem orçamento para esta turnê!");
 this.budget -= cost;
 const profit = cost * 2.2;
 this.budget += profit;
-alert(Turnê finalizada com sucesso! Lucro gerado: ${this.formatMoney(profit - cost)});
+alert("Turnê finalizada com sucesso! Lucro gerado: " + this.formatMoney(profit - cost));
 },
 ​nextMonth() {
 this.currentMonth++;
@@ -850,12 +855,11 @@ this.currentMonth = 1;
 this.currentYear++;
 }
 this.budget -= this.monthlyExpenses;
-​// Trigger 1-on-1 Random Meeting
-if (Math.random() < 0.3 && this.idols.length > 0) {
+​if (Math.random() < 0.3 && this.idols.length > 0) {
 const randomIdol = this.idols[Math.floor(Math.random() * this.idols.length)];
 this.activeMeeting = {
 idol: randomIdol,
-requestText: CEO, estive treinando duro. Gostaria de tirar uma semana de férias com minha família.,
+requestText: "CEO, estive treinando duro. Gostaria de tirar uma semana de férias com minha família.",
 acceptImpactText: "Estresse -20%, Lealdade +15",
 denyImpactText: "Estresse +15%, Lealdade -10"
 };
@@ -869,6 +873,9 @@ this.activeMeeting.idol.stress = Math.max(0, this.activeMeeting.idol.stress - 20
 this.activeMeeting.idol.stress += 15;
 }
 this.activeMeeting = null;
+},
+​resolveCrisis(crisis, option) {
+this.activeCrises = this.activeCrises.filter(c => c.id !== crisis.id);
 }
 };
 }
